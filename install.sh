@@ -23,4 +23,5 @@ echo "" >> ${HOME}/.bashrc
 echo "#path to sumstat-tools (added: $(date))" >> ${HOME}/.bashrc
 echo " export PATH=${PWD}:\${PATH}" >> ${HOME}/.bashrc
 echo "added 'export PATH=${PWD}:\${PATH}' to ${HOME}/.bashrc"
+echo "" >> ${HOME}/.bashrc
 
