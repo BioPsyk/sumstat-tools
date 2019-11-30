@@ -1,9 +1,18 @@
+# Check binary permissions
+for filename in $PWD/bin/* 
+do 
+    if [ $(stat -c "%a" "$filename") != "750" ] 
+    then 
+        echo "File: ${filename#*sumstat-tools/} updated permission to 750" 
+        chmod 750 $filename
+    fi 
+done 
 
 # Chek if PWD already exists in PATH
-while IFS=';' read -ra ADDR; do
+while IFS=':' read -ra ADDR; do
   for el in "${ADDR[@]}"; do
     if [ "${PWD}" == "${el}" ]; then
-      echo "sumstat-tools already exists in path"
+      echo "sumstat-tools already exists in path, so all should be installed"
       exit 1
     fi
   done
