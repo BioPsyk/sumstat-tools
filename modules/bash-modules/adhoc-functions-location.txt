@@ -1,0 +1,5 @@
+OPT FUNCTION_NAME FUNCTION_CALL NR_OF_ARGUMENTS
+1 funx_CHR_BP_2_BP funx_CHR_BP_2_BP(Markername) 1
+2 funx_CHR_BP_2_CHR funx_CHR_BP_2_CHR(Markername) 1
+3 funx_chrCHR_BP_2_CHR funx_chrCHR_BP_2_CHR(Markername) 1
+4 funx_chrCHR_2_CHR funx_chrCHR_2_CHR(chrCHR) 1
