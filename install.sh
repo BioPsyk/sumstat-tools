@@ -1,17 +1,28 @@
 # Check binary permissions
 for filename in $PWD/bin/* 
 do 
-    if [ $(stat -c "%a" "$filename") != "750" ] 
+    if [ $(stat -c "%a" "$filename") != "770" ] 
     then 
-        echo "File: ${filename#*sumstat-tools/} updated permission to 750" 
-        chmod 750 $filename
+        echo "File: ${filename#*sumstat-tools/} updated permission to 770" 
+        chmod 770 $filename
     fi 
 done 
+
+for filename in $PWD/modules/bash-modules/sstools-init-modules/* 
+do 
+    if [ $(stat -c "%a" "$filename") != "770" ] 
+    then 
+        echo "File: ${filename#*sumstat-tools/} updated permission to 770" 
+        chmod 770 $filename
+    fi 
+done 
+
+
 
 # Chek if PWD already exists in PATH
 while IFS=':' read -ra ADDR; do
   for el in "${ADDR[@]}"; do
-    if [ "${PWD}" == "${el}" ]; then
+    if [ "${PWD}/bin" == "${el}" ]; then
       echo "sumstat-tools already exists in path, so all should be installed"
       exit 1
     fi
@@ -30,7 +41,7 @@ fi
 # Write to .bashrc
 echo "" >> ${HOME}/.bashrc
 echo "#path to sumstat-tools (added: $(date))" >> ${HOME}/.bashrc
-echo " export PATH=${PWD}:\${PATH}" >> ${HOME}/.bashrc
+echo "export PATH=${PWD}/bin:\${PATH}" >> ${HOME}/.bashrc
 echo "added 'export PATH=${PWD}:\${PATH}' to ${HOME}/.bashrc"
 echo "" >> ${HOME}/.bashrc
 
