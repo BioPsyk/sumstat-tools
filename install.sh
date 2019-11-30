@@ -11,7 +11,7 @@ done
 # Chek if PWD already exists in PATH
 while IFS=':' read -ra ADDR; do
   for el in "${ADDR[@]}"; do
-    if [ "${PWD}" == "${el}" ]; then
+    if [ "${PWD}/bin" == "${el}" ]; then
       echo "sumstat-tools already exists in path, so all should be installed"
       exit 1
     fi
