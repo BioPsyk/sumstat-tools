@@ -13,8 +13,6 @@ Tools for curating and filtering sumstats
 To download and install sumstat-tools you have to clone the latest version from github. 
 
 ```shell 
-# Before cloning 
-
 # Step 1: Download using git clone
 git clone 
 
@@ -27,7 +25,7 @@ cd sumstat-tools
 # Step 4: Source .bashrc to finalize installation
 source ${HOME}/.bashrc
 
-# Step 4: Verify that sstools starts
+# Step 5: Verify that sstools starts
 sstools-version
 
 ```
