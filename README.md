@@ -67,7 +67,7 @@ Besides being fundamental in automatizing the mapping of genomic coordinates, we
 
 Using example data coming with the project we have designed this example to cover as many situations as possible
 
-#### In and output directory
+#### In- and output directory
 ```shell
 #Specify path to input data (exists in the data folder of root of sumstat-tools)
 DATA_DIR="data/gwas-summary-stats"
@@ -75,48 +75,47 @@ DATA_DIR="data/gwas-summary-stats"
 #Specify path to outfolder
 OUT_DIR="out/genomic_information"
 
-#make outfolder if it does not already exist
+# Make outfolder if it does not already exist
 mkdir -p ${OUT_DIR}
 
 ```
 
-#### One file map
+#### One file simplest example
 For the purpose of this example, we will first show the workflow for only one file.
 
 ```shell
-#select file we are about to add genomic informaiton to
-selfile="AD_sumstats_Jansenetal.txt.gz"
+# Select file we are about to lookup the genomic build information for
+infile="${DATA_DIR}/cad.add.160614.website.txt.gz"
 
-#look at the header to see available field names
-zcat ${SSD1}/$selfile | head -n3
-
-```
-The file has both chromosome and basepair (bp) information, but is missing rsid. We make a quick test which coordinate build the coordinates probably belong to. Use an R-script to investigate this.
-
-```shell
-module load tools
-module load intel/perflibs/64
-module load R/3.6.1
-
-Rlib="/home/projects/cu_10009/general/R-libraries/R_3.6.1_Bioc_3.9_library"
-chr_ix="2"
-bp_ix="3"
-rs_ix="---"
-file=${SSD1}/$selfile
-script="${PM}/R-modules/which-genome-build.R"
-
-Rscript $script $Rlib $chr_ix $bp_ix $rs_ix $file
+# Look at the header to see available field names
+zcat $infile | head -n3
 
 ```
-Now knowing the present genome build we can use that information to make mapping to GRCh37 and GRCh38, using the code below
+The file has both chromosome and basepair (bp) information, but is missing rsid. We make a quick test which coordinate build the coordinates belongs to (from the header it seems like hg19, but we run this script to be certain). Use 'sstools-gb which' to investigate this.
 
 ```shell
+# Declare params
+chr_field_name="chr"
+bp_field_name="bp_hg19"
+
+# Run script
+sstools-gb which -c ${chr_field_name} -p ${bp_field_name} -f ${infile}
+
+```
+The first column shows the best guess genome build based on the numbers to the right, for which column 1-4 represents the amount of rsids found for each of GRCh35 GRCh36 GRCh37 and GRCh38. Now knowing the present genome build, which appeared to be GRCh37 we can use that information to make a complete mapping of positions and rsids to GRCh37 and GRCh38, using the code below. The same required parameters as above and two new $gb and $OUT_DIR.
+
+```shell
+# Declare params
 gb="GRCh37"
-output_dir="out"
-script="${PM}/R-modules/construct-GRCh37-and-GRCh38-rsid-mapped-coordinates.R"
 
-Rscript $script $Rlib $chr_ix $bp_ix $rs_ix $file $gb $output_dir 2> ${output_dir}_genomebuild_conversion.log
+#Run script
+sstools-gb lookup -c ${chr_field_name} -p ${bp_field_name} -f ${infile} -g ${gb} -o ${OUT_DIR}
+
 ```
+
+#### One file with difficult field names
+Sometimes chromosome and postition information is in the same field name, e.g., chr1:342343. To handle that on the fly ```sstools-utils header -l``` can provide us with a list of possible substitutes.
+
 
 #### Multiple files, how to make a convenient wrapper
 To be able to check genome build for all sumstat files we first need a map file describing the indices for chr, pos or rsids are and their format. To make this task easier we a simple but efficient interactive walker, which steps through each file and asks for corresponding names and give suggestions on which index to use.
