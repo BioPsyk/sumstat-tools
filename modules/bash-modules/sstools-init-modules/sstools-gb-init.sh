@@ -2,12 +2,12 @@
 #whatever the input make it array
 paramarray=($@)
 
-unset sstools_modifier R_library R_library chr_field_name bp_field_name rs_field_name infile_path
+unset sstools_modifier R_library chr_field_name bp_field_name rs_field_name infile_path genome_build output_dir
 
 function general_usage(){
       echo "Usage:"
       echo "    sstools-gb which -h                      Display help message for the 'which' modifier"
-      echo "    sstools-gb convert -h                    Display help message for the 'convert' modifier"
+      echo "    sstools-gb lookup -h                     Display help message for the 'lookup' modifier"
 }
 
 # which_usage
@@ -100,18 +100,24 @@ while getopts ":hc:p:r:f:l:g:o:" opt "${paramarray[@]}"; do
 done
 
 # check that all required arguments for the selected modifier is set
-if [ "$sstools_modifier" == "which" ]; then
-  if [ -n "$infile_path" ] && [ -n "$chr_field_name" ] && [ -n "$bp_field_name" ] && [ -n "$rs_field_name" ] ; then
-    toreturn="${SSTOOLS_RLIB} ${chr_field_name} ${bp_field_name} "$rs_field_name" ${infile_path}"
-  elif [ -n "$infile_path" ] && [ -n "$chr_field_name" ] && [ -n "$bp_field_name" ] ; then
-    toreturn="${SSTOOLS_RLIB} ${chr_field_name} ${bp_field_name} --- ${infile_path}"
-  elif [ -n "$infile_path" ] && [ -n "$rs_field_name" ] ; then
-    toreturn="${SSTOOLS_RLIB} --- --- ${rs_field_name} ${infile_path}"
+if [ "$sstools_modifier" == "which" ] ; then
+  if [ -n "$infile_path" ] ; then
+    if [ -n "$chr_field_name" ] && [ -n "$bp_field_name" ] && [ -n "$rs_field_name" ] ; then
+      toreturn="${SSTOOLS_RLIB} ${chr_field_name} ${bp_field_name} "$rs_field_name" ${infile_path}"
+    elif [ -n "$infile_path" ] && [ -n "$chr_field_name" ] && [ -n "$bp_field_name" ] ; then
+      toreturn="${SSTOOLS_RLIB} ${chr_field_name} ${bp_field_name} --- ${infile_path}"
+    elif [ -n "$infile_path" ] && [ -n "$rs_field_name" ] ; then
+      toreturn="${SSTOOLS_RLIB} --- --- ${rs_field_name} ${infile_path}"
+    else
+      echo "Error: all required params have to be set"
+      which_usage 1>&2 
+      exit 1
+    fi 
   else
-    echo "Error: all required params have to be set"
+    echo "Error: all required params have to be set, infile missing"
     which_usage 1>&2 
     exit 1
-  fi 
+fi
 elif [ "$sstools_modifier" == "lookup" ]; then
   if [ -n "$infile_path" ] && [ -n "$genome_build" ] && [ -n "$output_dir" ] ; then
     if [ -n "$chr_field_name" ] && [ -n "$bp_field_name" ] && [ -n "$rs_field_name" ] ; then

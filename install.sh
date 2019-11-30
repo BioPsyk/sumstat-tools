@@ -1,12 +1,23 @@
 # Check binary permissions
 for filename in $PWD/bin/* 
 do 
-    if [ $(stat -c "%a" "$filename") != "750" ] 
+    if [ $(stat -c "%a" "$filename") != "770" ] 
     then 
-        echo "File: ${filename#*sumstat-tools/} updated permission to 750" 
-        chmod 750 $filename
+        echo "File: ${filename#*sumstat-tools/} updated permission to 770" 
+        chmod 770 $filename
     fi 
 done 
+
+for filename in $PWD/modules/bash-modules/sstools-init-modules/* 
+do 
+    if [ $(stat -c "%a" "$filename") != "770" ] 
+    then 
+        echo "File: ${filename#*sumstat-tools/} updated permission to 770" 
+        chmod 770 $filename
+    fi 
+done 
+
+
 
 # Chek if PWD already exists in PATH
 while IFS=':' read -ra ADDR; do
