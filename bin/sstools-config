@@ -1,0 +1,17 @@
+# For now use this files content as config, but preferably there should be a config directory somewhere
+
+#Not the most beautiful way to set an environmental variable but it works
+SSTOOLS_ROOT_ENV="${PWD%/bin}"
+export SSTOOLS_ROOT_ENV=${SSTOOLS_ROOT_ENV}
+
+#export paths in main-conf
+sh ${SSTOOLS_ROOT_ENV}/config/config-main.conf
+
+#export paths in user-conf
+sh ${SSTOOLS_ROOT_ENV}/config/config-user.conf
+
+#sstools-gb
+#module load tools
+#module load intel/perflibs/64
+#module load R/3.6.1
+

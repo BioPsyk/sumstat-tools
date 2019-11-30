@@ -1,0 +1,28 @@
+
+userarr=("$@")
+sstools_modifier=$1
+#echo ${sstools_modifier}
+#execute global config file to get most up to date configurations
+#Not the most beautiful way to set an environmental variable but it works
+SSTOOLS_ROOT_ENV="${PWD%/bin}"
+export SSTOOLS_ROOT_ENV=${SSTOOLS_ROOT_ENV}
+#export paths in main-conf
+source ${SSTOOLS_ROOT_ENV}/config/config-main.conf
+#export paths in user-conf
+source ${SSTOOLS_ROOT_ENV}/config/config-user.conf
+#echo "${SSTOOLS_ROOT_ENV}"
+
+
+#${SSTOOLS_ROOT_ENV}/modules/bash-modules/sstools-init-modules/sstools-gb-init.sh "$( IFS=$' '; echo "${userarr[*]}" )"
+ARGS_TO_RFUNC=($(${SSTOOLS_ROOT_ENV}/modules/bash-modules/sstools-init-modules/sstools-gb-init.sh "$( IFS=$' '; echo "${userarr[*]}" )"))
+
+#run script based on modifier
+if [ "$sstools_modifier" == "which" ]; then
+  #echo "${ARGS_TO_RFUNC[@]}"
+  ${SSTOOLS_RSOFT}/Rscript ${SSTOOLS_GB_WHICH_RSCRIPT} "${ARGS_TO_RFUNC[@]}"
+elif [ "$sstools_modifier" == "lookup" ]; then
+  #echo "${ARGS_TO_RFUNC[@]}"
+  ${SSTOOLS_RSOFT}/Rscript ${SSTOOLS_GB_LOOKUP_RSCRIPT} "${ARGS_TO_RFUNC[@]}"
+fi
+
+
