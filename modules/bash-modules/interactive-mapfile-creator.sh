@@ -5,19 +5,20 @@ function interactiveWalker() {
   rawfilesDir=$2
   mapout=$3
   newheader=$4
+  SSTOOLS_ROOT=$5
   
   #metadata=${METADATA_GWAS}
   #rawfilesDir=${GWAS_SUMSTATS_FILE_DIR}
   #mapout=${MAPFILE_GWAS}
   
   #source simple and special case
-  source "modules/bash-modules/simple-case-module.sh"
-  source "modules/bash-modules/special-case-module.sh"
-  source "modules/bash-modules/studyid-which-remain.sh"
+  source "${SSTOOLS_ROOT}/modules/bash-modules/simple-case-module.sh"
+  source "${SSTOOLS_ROOT}/modules/bash-modules/special-case-module.sh"
+  source "${SSTOOLS_ROOT}/modules/bash-modules/studyid-which-remain.sh"
   
   #declare new header names and order
   #newheader="CHR,BP,A1,Zscore,P"
-  splitString="modules/awk-modules/split-string-from-comma-to-whitespace.awk"
+  splitString="${SSTOOLS_ROOT}/modules/awk-modules/split-string-from-comma-to-whitespace.awk"
   newheadarray=($(echo ${newheader} | awk -f ${splitString} ))
   newarraylength=${#newheadarray[@]}
   
@@ -28,7 +29,7 @@ function interactiveWalker() {
   
   if [ -f ${mapout} ]; 
   then
-    AWK_RETURN_MATCHING_ROWS="modules/awk-modules/return-rows-which-match-pattern-in-array.awk"
+    AWK_RETURN_MATCHING_ROWS="${SSTOOLS_ROOT}/modules/awk-modules/return-rows-which-match-pattern-in-array.awk"
     studyid=($(use_only_remaining_studyIds ${metadata} ${mapout}))
     #studyidstring="${studyid[@]}"
     studyidstring="$(IFS=,; echo "${studyid[*]}")"
@@ -52,7 +53,7 @@ function interactiveWalker() {
   fi
   
   #define awkscript
-  awk_space_to_newline="modules/awk-modules/split-string-from-whitespace-to-newline.awk"
+  awk_space_to_newline="${SSTOOLS_ROOT}/modules/awk-modules/split-string-from-whitespace-to-newline.awk"
   
   # loop through every element in the array
   for (( i=0; i<${studyidlength}; i++ ));

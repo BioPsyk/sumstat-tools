@@ -166,6 +166,8 @@ NEW_FILE_COLUMN_NAMES_AND_ORDER="CHR,BP,RSID"
 source ${BASH_INTERACTIVE_MAPFILE}
 interactiveWalker ${METADATA_GWAS} ${SSD1} ${MAPFILE_GWAS} ${NEW_FILE_COLUMN_NAMES_AND_ORDER}
 
+sstools-utils
+
 ```
 
 Let us detect which genome build that has been used in each study corresponding to the coordinates present in the mapfile. This can take some time, and it might be worth aprallelize the for-loop.

@@ -39,6 +39,12 @@ if [ $RESULT -eq 0 ]; then
     elif [ "$sstools_modifier" == "assemble" ]; then
       #echo $VAR_RETURN
       eval $VAR_RETURN
+    elif [ "$sstools_modifier" == "assemble" ]; then
+      echo $SSTOOLS_BASH_INTERACTIVE_MAPFILE_CREATOR
+      source ${SSTOOLS_BASH_INTERACTIVE_MAPFILE_CREATOR}
+      echo $VAR_RETURN
+      #run bash function (to run it as a function is the only way to get the interactivenes to work)
+      interactiveWalker ${METADATA_GWAS} ${SSD1} ${MAPFILE_GWAS} ${NEW_FILE_COLUMN_NAMES_AND_ORDER} ${SSTOOLS_ROOT_ENV}
     else
       echo "no modifier" 1>&2
     fi
