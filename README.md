@@ -85,10 +85,10 @@ For the purpose of this example, we will first show the workflow for only one fi
 
 ```shell
 # Select file we are about to lookup the genomic build information for
-infile="${DATA_DIR}/cad.add.160614.website.txt.gz"
+infile1="${DATA_DIR}/cad.add.160614.website.txt.gz"
 
 # Look at the header to see available field names
-zcat $infile | head -n3
+zcat $infile1 | head -n3
 
 ```
 The file has both chromosome and basepair (bp) information, but is missing rsid. We make a quick test which coordinate build the coordinates belongs to (from the header it seems like hg19, but we run this script to be certain). Use 'sstools-gb which' to investigate this.
@@ -99,22 +99,22 @@ chr_field_name="chr"
 bp_field_name="bp_hg19"
 
 # Run
-sstools-gb which -c ${chr_field_name} -p ${bp_field_name} -f ${infile}
+sstools-gb which -c ${chr_field_name} -p ${bp_field_name} -f ${infile1}
 
 ```
 The first column shows the best guess genome build based on the numbers to the right, for which column 1-4 represents the amount of rsids found for each of GRCh35 GRCh36 GRCh37 and GRCh38. Now knowing the present genome build, which appeared to be GRCh37 we can use that information to make a complete mapping of positions and rsids to GRCh37 and GRCh38, using the code below. The same required parameters as above and two new $gb and $OUT_DIR.
 
 ```shell
 # Declare params
-gb="GRCh37"
+genome_build="GRCh37"
 
 # Run
-sstools-gb lookup -c ${chr_field_name} -p ${bp_field_name} -f ${infile} -g ${gb} -o ${OUT_DIR}
+sstools-gb lookup -c ${chr_field_name} -p ${bp_field_name} -f ${infile1} -g ${genome_build} -o ${OUT_DIR}
 
 ```
 The results are not written to screen this time, but instead to the ${OUT_DIR} folder, which contains files for all markers that were not successful and files for the ones that were successful, both with indices referring back to the original file. Further down in this section it is shown how to merge the new mapped markers with the old file.
 
-#### One file with difficult field names
+#### Another file with difficult field names
 Sometimes chromosome and postition information is in the same field name, e.g., chr1:342343. To handle that on the fly ```sstools-utils ad-hoc -lnb``` can provide us with a list of possible substitutes. Let us take a look at a file with a more complicated field name for the location and try to solve it using the ad-hoc function.
 
 ```shell
@@ -130,22 +130,31 @@ It seems like we have the location information on the form "1:749963", and the a
 
 ```shell
 # Test that we get the right output
-sstools-utils ad-hoc -f $infile2 -k "funx_CHR_BP_2_BP(MarkerName)" | head
+sstools-utils ad-hoc-do -f $infile2 -k "funx_CHR_BP_2_BP(MarkerName)" | head
 
 # Now do the gb check for this file using the special function.
-sstools-gb which -c ${funx_CHR_BP_2_CHR(MarkerName)} -p ${funx_CHR_BP_2_BP(MarkerName)} -f ${infile}
+sstools-gb which -c "funx_CHR_BP_2_CHR(MarkerName)" -p "funx_CHR_BP_2_BP(MarkerName)" -f ${infile2}
+
+# Now do the gb lookup for this file using the special function.
+sstools-gb lookup -c "funx_CHR_BP_2_CHR(MarkerName)" -p "funx_CHR_BP_2_BP(MarkerName)" -f ${infile2} -g "GRCh37" -o ${OUT_DIR}
 
 ```
 This can be a good way of reducing the amount of intermediate files, and keeping track of which conversions that have been made. Now as a final step for this section we are going to merge our marker information for GRCh37 and GRCh38 with the original file.
 
 ```shell
 # Merge the output by only keeping markers present in both
-sstools-utils assemble -f $infile2 -g $mapped | head
+mapped2="${OUT_DIR}/successfull_mappings/GRCh37/remaining_t2d_dom_dev.txt"
+sstools-utils assemble -f $infile2 -g $mapped2 | head
 
+# Do same for infile1
+mapped1="${OUT_DIR}/successfull_mappings/GRCh37/remaining_cad.add.160614.website.txt"
+sstools-utils assemble -f $infile1 -g $mapped1 | head
 ```
-Great it works as intended, we only get successfull mappings for GRCh37. That was it for the single file functionality. Next
+Great! It works as intended, we got all successful mappings for GRCh37 in a joint output, which can be used in the downstream workflow.
 
 #### Multiple files, how to make a convenient wrapper
+We will here introduce how to manage batch mappings for the genome builds in an effective manner preserving modularity, which in practice means leaving for-loops outside the tools internal to facilitate the integration to a pipeline framework (otherwise making it impossible to make full use of pipeline managers such as e.g., NextFlow).
+
 To be able to check genome build for all sumstat files we first need a map file describing the indices for chr, pos or rsids are and their format. To make this task easier we a simple but efficient interactive walker, which steps through each file and asks for corresponding names and give suggestions on which index to use.
 
 ```shell
