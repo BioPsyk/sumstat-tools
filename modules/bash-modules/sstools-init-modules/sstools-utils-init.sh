@@ -60,6 +60,7 @@ case "${paramarray[0]}" in
     ;;
   interactive)
     sstools_modifier=${paramarray[0]}
+    getoptsstring=":hf:o:n:"
     shift # Remove `install` from the argument list
     ;;
   *)
@@ -98,8 +99,10 @@ while getopts "${getoptsstring}" opt "${paramarray[@]}"; do
         names=true
       elif [ "$sstools_modifier" == "ad-hoc-do" ]; then
         names="$OPTARG"
-      elif [ "$sstools_modifier" == "ad-hoc-do" ]; then
+      elif [ "$sstools_modifier" == "assemble" ]; then
         names=true
+      elif [ "$sstools_modifier" == "interactive" ]; then
+        names="$OPTARG"
       fi
       ;;
     b )
@@ -113,6 +116,9 @@ while getopts "${getoptsstring}" opt "${paramarray[@]}"; do
       ;;
     k )
       specialfunction="$OPTARG"
+      ;;
+    o )
+      outfile="$OPTARG"
       ;;
     \? )
       echo "Invalid Option: -$OPTARG" 1>&2
@@ -176,21 +182,19 @@ elif [ "$sstools_modifier" == "assemble" ] ; then
     adhocdo_usage 1>&2 
     exit 1
   fi
+elif [ "$sstools_modifier" == "interactive" ] ; then
+  if [ -n "$infile" ] && [ "$names" ] && [ "$outfile" ]; then
+    cmd1="$infile $outfile $names"
+  else
+    echo "Error: not enough params are set"
+    interactive_usage 1>&2 
+    exit 1
+  fi
 else
   echo "Error: not enough params are set"
   adhocdo_usage 1>&2 
   exit 1
 fi
 
-## The interactive code part
-#if [ "$sstools_modifier" == "interactive" ]; then
-#  
-#  echo "This code has to be written"
-#
-#else
-#  echo "Error: a modifier has to be set"
-#  general_usage 1>&2
-#  exit 1
-#fi
 
 echo "$cmd1"
