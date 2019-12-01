@@ -98,7 +98,7 @@ The file has both chromosome and basepair (bp) information, but is missing rsid.
 chr_field_name="chr"
 bp_field_name="bp_hg19"
 
-# Run script
+# Run
 sstools-gb which -c ${chr_field_name} -p ${bp_field_name} -f ${infile}
 
 ```
@@ -108,14 +108,42 @@ The first column shows the best guess genome build based on the numbers to the r
 # Declare params
 gb="GRCh37"
 
-#Run script
+# Run
 sstools-gb lookup -c ${chr_field_name} -p ${bp_field_name} -f ${infile} -g ${gb} -o ${OUT_DIR}
 
 ```
+The results are not written to screen this time, but instead to the ${OUT_DIR} folder, which contains files for all markers that were not successful and files for the ones that were successful, both with indices referring back to the original file. Further down in this section it is shown how to merge the new mapped markers with the old file.
 
 #### One file with difficult field names
-Sometimes chromosome and postition information is in the same field name, e.g., chr1:342343. To handle that on the fly ```sstools-utils header -l``` can provide us with a list of possible substitutes.
+Sometimes chromosome and postition information is in the same field name, e.g., chr1:342343. To handle that on the fly ```sstools-utils ad-hoc -lnb``` can provide us with a list of possible substitutes. Let us take a look at a file with a more complicated field name for the location and try to solve it using the ad-hoc function.
 
+```shell
+# Look at file
+infile2="${DATA_DIR}/t2d_dom_dev.txt.gz"
+zcat $infile2 | head
+
+# take a look at the available special functions
+sstools-utils ad-hoc -lnb
+
+```
+It seems like we have the location information on the form "1:749963", and the appropriate function would then be "funx_CHR_BP_2_BP". To see exactly what the different flags do, see ```sstools-utils ad-hoc -h```. Before using the computationally heavy sstools-gb, we can check that the special function gives the output we want.
+
+```shell
+# Test that we get the right output
+sstools-utils ad-hoc -f $infile2 -k "funx_CHR_BP_2_BP(MarkerName)" | head
+
+# Now do the gb check for this file using the special function.
+sstools-gb which -c ${funx_CHR_BP_2_CHR(MarkerName)} -p ${funx_CHR_BP_2_BP(MarkerName)} -f ${infile}
+
+```
+This can be a good way of reducing the amount of intermediate files, and keeping track of which conversions that have been made. Now as a final step for this section we are going to merge our marker information for GRCh37 and GRCh38 with the original file.
+
+```shell
+# Merge the output by only keeping markers present in both
+sstools-utils assemble -f $infile2 -g $mapped | head
+
+```
+Great it works as intended, we only get successfull mappings for GRCh37. That was it for the single file functionality. Next
 
 #### Multiple files, how to make a convenient wrapper
 To be able to check genome build for all sumstat files we first need a map file describing the indices for chr, pos or rsids are and their format. To make this task easier we a simple but efficient interactive walker, which steps through each file and asks for corresponding names and give suggestions on which index to use.
