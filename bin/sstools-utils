@@ -33,8 +33,9 @@ if [ $RESULT -eq 0 ]; then
     if [ "$sstools_modifier" == "ad-hoc" ]; then
       eval $VAR_RETURN
       #echo $VAR_RETURN
-    elif [ "$sstools_modifier" == "lookup" ]; then
-      echo "execute som function here if you develop any"
+    elif [ "$sstools_modifier" == "ad-hoc-do" ]; then
+      #echo $VAR_RETURN
+      eval $VAR_RETURN
     else
       echo "no modifier" 1>&2
     fi
