@@ -40,6 +40,13 @@ function interactive_usage(){
       echo " "
       echo " "
 }
+function nrow(){
+      echo "Usage:"
+      echo "    sstools-gb nrow -h                 (Display this help message)"
+      echo " "
+      echo " "
+}
+
 
 # check for and then remove first modifier from arguments list.
 case "${paramarray[0]}" in
@@ -61,6 +68,11 @@ case "${paramarray[0]}" in
   interactive)
     sstools_modifier=${paramarray[0]}
     getoptsstring=":hf:o:n:"
+    shift # Remove `install` from the argument list
+    ;;
+  nrow)
+    sstools_modifier=${paramarray[0]}
+    getoptsstring=":hf:n:"
     shift # Remove `install` from the argument list
     ;;
   *)
@@ -85,6 +97,8 @@ while getopts "${getoptsstring}" opt "${paramarray[@]}"; do
         assemble_usage 1>&2
       elif [ "$sstools_modifier" == "interactive" ]; then
         interactive_usage 1>&2
+      elif [ "$sstools_modifier" == "nrow" ]; then
+        nrow_usage 1>&2
       fi
       exit 0
       ;;
@@ -103,6 +117,8 @@ while getopts "${getoptsstring}" opt "${paramarray[@]}"; do
         names=true
       elif [ "$sstools_modifier" == "interactive" ]; then
         names="$OPTARG"
+      elif [ "$sstools_modifier" == "nrow" ]; then
+        names=true
       fi
       ;;
     b )
@@ -185,6 +201,20 @@ elif [ "$sstools_modifier" == "assemble" ] ; then
 elif [ "$sstools_modifier" == "interactive" ] ; then
   if [ -n "$infile" ] && [ "$names" ] && [ "$outfile" ]; then
     cmd1="$infile $outfile $names"
+  else
+    echo "Error: not enough params are set"
+    interactive_usage 1>&2 
+    exit 1
+  fi
+elif [ "$sstools_modifier" == "nrow" ] ; then
+  if [ -n "$infile" ] ; then
+    cmd1=" cat $infile" 
+    if [ -n "$names" ] ; then
+      cmd1="${cmd1}"
+    else
+      cmd1="${cmd1} | tail -n+2"
+    fi
+    cmd1="${cmd1} | wc -l | awk '{print $1}'"
   else
     echo "Error: not enough params are set"
     interactive_usage 1>&2 
