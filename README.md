@@ -73,11 +73,12 @@ Using example data coming with the project we have designed this example to cove
 DATA_DIR="data/gwas-summary-stats"
 
 #Specify path to outfolder
-OUT_DIR="out/genomic_information"
+OUT_DIR1="out/genomic_information"
+OUT_DIR2="out/mapping_information"
 
 # Make outfolder if it does not already exist
-mkdir -p ${OUT_DIR}
-
+mkdir -p ${OUT_DIR1}
+mkdir -p ${OUT_DIR2}
 ```
 
 #### One file simplest example
@@ -109,7 +110,7 @@ The first column shows the best guess genome build based on the numbers to the r
 genome_build="GRCh37"
 
 # Run
-sstools-gb lookup -c ${chr_field_name} -p ${bp_field_name} -f ${infile1} -g ${genome_build} -o ${OUT_DIR}
+sstools-gb lookup -c ${chr_field_name} -p ${bp_field_name} -f ${infile1} -g ${genome_build} -o ${OUT_DIR1}
 
 ```
 The results are not written to screen this time, but instead to the ${OUT_DIR} folder, which contains files for all markers that were not successful and files for the ones that were successful, both with indices referring back to the original file. Further down in this section it is shown how to merge the new mapped markers with the old file.
@@ -136,18 +137,18 @@ sstools-utils ad-hoc-do -f $infile2 -k "funx_CHR_BP_2_BP(MarkerName)" | head
 sstools-gb which -c "funx_CHR_BP_2_CHR(MarkerName)" -p "funx_CHR_BP_2_BP(MarkerName)" -f ${infile2}
 
 # Now do the gb lookup for this file using the special function.
-sstools-gb lookup -c "funx_CHR_BP_2_CHR(MarkerName)" -p "funx_CHR_BP_2_BP(MarkerName)" -f ${infile2} -g "GRCh37" -o ${OUT_DIR}
+sstools-gb lookup -c "funx_CHR_BP_2_CHR(MarkerName)" -p "funx_CHR_BP_2_BP(MarkerName)" -f ${infile2} -g "GRCh37" -o ${OUT_DIR1}
 
 ```
 This can be a good way of reducing the amount of intermediate files, and keeping track of which conversions that have been made. Now as a final step for this section we are going to merge our marker information for GRCh37 and GRCh38 with the original file.
 
 ```shell
 # Merge the output by only keeping markers present in both
-mapped2="${OUT_DIR}/successfull_mappings/GRCh37/remaining_t2d_dom_dev.txt"
+mapped2="${OUT_DIR1}/successfull_mappings/GRCh37/remaining_t2d_dom_dev.txt"
 sstools-utils assemble -f $infile2 -g $mapped2 | head
 
 # Do same for infile1
-mapped1="${OUT_DIR}/successfull_mappings/GRCh37/remaining_cad.add.160614.website.txt"
+mapped1="${OUT_DIR1}/successfull_mappings/GRCh37/remaining_cad.add.160614.website.txt"
 sstools-utils assemble -f $infile1 -g $mapped1 | head
 ```
 Great! It works as intended, we got all successful mappings for GRCh37 in a joint output, which can be used in the downstream workflow.
@@ -157,100 +158,97 @@ We will here introduce how to manage batch mappings for the genome builds in an 
 
 To be able to check genome build for all sumstat files we first need a map file describing the indices for chr, pos or rsids are and their format. To make this task easier we a simple but efficient interactive walker, which steps through each file and asks for corresponding names and give suggestions on which index to use.
 
-```shell
-BASH_INTERACTIVE_MAPFILE="modules/bash-modules/interactive-mapfile-creator.sh"
-METADATA_GWAS="tests/testdata/sample-metadata.txt"
-MAPFILE_GWAS="${SSD_AGI}/mapfile-rsids-and-postitions.txt"
-NEW_FILE_COLUMN_NAMES_AND_ORDER="CHR,BP,RSID"
-#run bash function (to run it as a function is the only way to get the interactivenes to work)
-source ${BASH_INTERACTIVE_MAPFILE}
-interactiveWalker ${METADATA_GWAS} ${SSD1} ${MAPFILE_GWAS} ${NEW_FILE_COLUMN_NAMES_AND_ORDER}
+In this section three new example files will be used to convince on the usefulness of the support mechanisms for to facilitate pipeline building. Let us set up these new settings
 
-sstools-utils
+```shell
+# declare input arguments
+MAPFILE_GWAS="${OUT_DIR2}/mapfile-rsids-and-postitions.txt"
+infile3="${DATA_DIR}/DIAGRAMv3.2012DEC17.txt.gz"
+NEW_FILE_COLUMN_NAMES_AND_ORDER="CHR,BP,RSID"
+
+#run bash function
+sstools-utils interactive -f ${infile3} -o ${MAPFILE_GWAS} -n ${NEW_FILE_COLUMN_NAMES_AND_ORDER}
+
+#check if we got anything in the outfile
+cat ${MAPFILE_GWAS}
 
 ```
-
-Let us detect which genome build that has been used in each study corresponding to the coordinates present in the mapfile. This can take some time, and it might be worth aprallelize the for-loop.
+Now that we have initiated a mapfile, we could continue to add entries for more sumstat files to the same output file by just replacing the input file (-f), specify multiple files using comma separator (-f) or we can specify a complete directory (-d) to walk through. Files already present in the mapfile will be skipped.
 
 ```shell
-METADATA_GWAS="tests/testdata/sample-metadata.txt"
-MAPFILE_GWAS="${SSD_AGI}/mapfile-rsids-and-postitions.txt"
-MAPFILE_GWAS_2="${SSD_AGI}/mapfile-genome-builds.txt"
-Rlib="/home/projects/cu_10009/general/R-libraries/R_3.6.1_Bioc_3.9_library"
-script="${PM}/R-modules/which-genome-build.R"
+# add infiles to array
+infiles="${infile1},${infile2},${infile3}"
 
-files=($(tail -n+2 ${METADATA_GWAS} | awk '{print $3}' ))
-ids=($(tail -n+2 ${METADATA_GWAS} | awk '{print $1}' ))
+#run bash function
+sstools-utils interactive -f ${infiles} -o ${MAPFILE_GWAS} -n ${NEW_FILE_COLUMN_NAMES_AND_ORDER}
 
-#clear outfile
+#check if we got anything in the outfile
+cat ${MAPFILE_GWAS}
+
+```
+So, now we have fixed the manual step. Let us move on to use this newly created mapfile in the context of sstools-gb. Now we are again going to investigate which genome build that has been used in each study corresponding to the coordinates present in the mapfile. This can take some time, and it might be worth to parallelize the for-loop.
+
+```shell
+# set a new outfile catching all genome build information
+MAPFILE_GWAS_2="${OUT_DIR2}/mapfile-genome-builds.txt"
+
+#clear outfile (move to tools internals)
 echo -e "study_id\tguessbuild\tGRCh35\tGRCh36\tGRCh37\tGRCh38"> ${MAPFILE_GWAS_2}
+#Fill with content  (move to tools internals)
+res=($(Rscript $script $Rlib ${row2[0]} ${row2[1]} ${row2[2]} $fileWpath))
+printf "%s\t%s\t%s\t%s\t%s\t%s\n" $id ${res[0]} ${res[1]} ${res[2]} ${res[3]} ${res[4]} ${res[5]} | tee -a ${MAPFILE_GWAS_2}
 
-nrOfEntries=${#ids[@]}
-# quick parallelization of for loop to gain some speed
-for (( j=0; j<${nrOfEntries}; j++ )); do \
- ( \
- echo "$chr starting ..."; \
+# check number of files with coordinates (should be 3 by now)
+nrows=$(sstools-utils nrow -f ${MAPFILE_GWAS})
 
-  id=${ids[j]}
-  file=${files[j]}
-  fileWpath=${SSD1}/${file}
-  #pick row where id match to first column
-  row2=($(tail -n+2 ${MAPFILE_GWAS} | awk -F"\t" -v id="${id}" '$1==id {for (i=2; i<=NF; i++) printf "%s%s",$(i),OFS;  }' ))
+# Now we do the gb check in a parallelized loop for each file present in the mapfile
+for (( j=0; j<${nrows}; j++ )); do \
+( \
+echo "file $j starting ..."; \
 
-  res=($(Rscript $script $Rlib ${row2[0]} ${row2[1]} ${row2[2]} $fileWpath))
-  printf "%s\t%s\t%s\t%s\t%s\t%s\n" $id ${res[0]} ${res[1]} ${res[2]} ${res[3]} ${res[4]} ${res[5]} | tee -a ${MAPFILE_GWAS_2}
+sstools-gb which -d ${DATA_DIR} -m ${MAPFILE_GWAS} -o ${MAPFILE_GWAS_2} -i ${j}
 
-
- echo "$chr done ..."; \
- ) & \
+echo "file $j done ..."; \
+) & \
 done; wait
 
-
 ```
 
-Now when we know which genome build we have, let us lift over everything that is GRCh37 to GRCh38 and then map to rsid, and create one more branch by lifting back to GRCh37 to create two versions containing variants both for two genome builds, and which are only present in dbSNP151. The result will be two files each containing: field1: ROWINDEX, field2: CHR, field3: BP field4: RSID
+Now when we know which genome builds we have, let us lift over everything that is GRCh37 to GRCh38 and then map to rsid. Also here we can use a parallelized setting.
 
 ```shell
+# Set log dir to keep a log for each file
+LOG_DIR="${OUT_DIR1}/completed-lookups"
 
-METADATA_GWAS="tests/testdata/sample-metadata.txt"
-MAPFILE_GWAS="${SSD_AGI}/mapfile-rsids-and-postitions.txt"
-MAPFILE_GWAS_2="${SSD_AGI}/mapfile-genome-builds.txt"
-NEW_COORDINATES_DIR="${SSD_AGI}"
-COMPLETED_COORDINATES="${SSD_AGI}/completed-conversions.txt"
-LOG_DIR="${SSD_AGI}/completed-conversions"
-Rlib="/home/projects/cu_10009/general/R-libraries/R_3.6.1_Bioc_3.9_library"
-script="${PM}/R-modules/construct-GRCh37-and-GRCh38-rsid-mapped-coordinates.R"
-
-#make dir if not exist
+#make dir if not exists
 mkdir -p ${LOG_DIR}
 
-#clear status file
-echo -e "A mesage will be written to this file when it has finished"> ${COMPLETED_COORDINATES}
+# Now we do the gb check in a parallelized loop for each file present in the mapfile
+for (( j=0; j<${nrows}; j++ )); do \
+( \
+echo "file $j starting ..."; \
 
-files=($(tail -n+2 ${METADATA_GWAS} | awk '{print $3}' ))
-ids=($(tail -n+2 ${METADATA_GWAS} | awk '{print $1}' ))
+sstools-gb lookup -d ${DATA_DIR} -m ${MAPFILE_GWAS} -g ${MAPFILE_GWAS_2} -o ${OUT_DIR1} -i ${j}
 
-nrOfEntries=${#ids[@]}
-# quick parallelization of for loop to gain some speed
-for (( j=0; j<${nrOfEntries}; j++ )); do \
- ( \
- echo "$chr starting ..."; \
-
-  id=${ids[j]}
-  file=${files[j]}
-  fileWpath=${SSD1}/${file}
-  #pick row where id match to first column
-  row2=($(tail -n+2 ${MAPFILE_GWAS} | awk -F"\t" -v id="${id}" '$1==id {for (i=2; i<=NF; i++) printf "%s%s",$(i),OFS;  }' ))
-  gb=($(tail -n+2 ${MAPFILE_GWAS_2} | awk -F"\t" -v id="${id}" '$1==id {for (i=2; i<=NF; i++) printf "%s%s",$(i),OFS;  }' ))
-
-  Rscript ${script} ${Rlib} ${row2[0]} ${row2[1]} ${row2[2]} ${fileWpath} ${gb[0]} ${NEW_COORDINATES_DIR} 2> ${LOG_DIR}/${id}_genomebuild_conversion.log
-
-  printf "%s\t%s\n" "done" ${id} >> ${COMPLETED_COORDINATES}
-
- echo "$chr done ..."; \
- ) & \
+echo "file $j done ..."; \
+) & \
 done; wait
+
 
 ```
 
-Now we have output with all positions and rsids with index pointing to the original file. To save space we can wait to produce a joint file, and intead do it when assembling the final output in Step 04.
+Now we have output with all positions and rsids with index pointing to the original file. Therefore it is time to assemble a new location quality controlled set of files.
+
+```shell
+# Merge the output by only keeping markers present in both
+mapdir="${OUT_DIR1}/successfull_mappings/GRCh37"
+qcddir="${OUT_DIR1}/location_qcd_GRCh37"
+mkdir -p "${qcddir}"
+
+# This step takes much less time and does not need parallization
+for (( j=0; j<${nrows}; j++ )); do
+sstools-utils assemble -d ${DATA_DIR} -g $mapdir -o $qcddir -i ${j}
+done
+```
+
+Now the tutorial for sstools-gb has come to an end.
