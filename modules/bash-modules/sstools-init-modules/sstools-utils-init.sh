@@ -72,7 +72,7 @@ case "${paramarray[0]}" in
     ;;
   nrow)
     sstools_modifier=${paramarray[0]}
-    getoptsstring=":hf:n:"
+    getoptsstring=":hf:n"
     shift # Remove `install` from the argument list
     ;;
   *)
@@ -209,7 +209,7 @@ elif [ "$sstools_modifier" == "interactive" ] ; then
 elif [ "$sstools_modifier" == "nrow" ] ; then
   if [ -n "$infile" ] ; then
     cmd1=" cat $infile" 
-    if [ -n "$names" ] ; then
+    if [ "$names" ] ; then
       cmd1="${cmd1}"
     else
       cmd1="${cmd1} | tail -n+2"

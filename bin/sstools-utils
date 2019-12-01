@@ -44,6 +44,9 @@ if [ $RESULT -eq 0 ]; then
       source ${SSTOOLS_BASH_INTERACTIVE_MAPFILE_CREATOR}
       #echo ${METADATA_GWAS} ${VAR_RETURN} ${SSTOOLS_ROOT_ENV}
       interactiveWalkerMultiple ${VAR_RETURN} ${SSTOOLS_ROOT_ENV}
+    elif [ "$sstools_modifier" == "nrow" ]; then
+      #echo $VAR_RETURN
+      eval $VAR_RETURN
     else
       echo "no modifier" 1>&2
     fi
