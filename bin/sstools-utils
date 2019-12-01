@@ -20,18 +20,19 @@ source ${SSTOOLS_ROOT_ENV}/config/config-user.conf
 
 
 #${SSTOOLS_ROOT_ENV}/modules/bash-modules/sstools-init-modules/sstools-gb-init.sh "$( IFS=$' '; echo "${userarr[*]}" )"
-ARGS_TO_RFUNC=($(${SSTOOLS_ROOT_ENV}/modules/bash-modules/sstools-init-modules/sstools-utils-init.sh "$( IFS=$' '; echo "${userarr[*]}" )")) 
+VAR_RETURN=$(${SSTOOLS_ROOT_ENV}/modules/bash-modules/sstools-init-modules/sstools-utils-init.sh "$( IFS=$' '; echo "${userarr[*]}" )")
 RESULT=$?
 #If the above (most recent command) was successful, then 
 if [ $RESULT -eq 0 ]; then
   #echo "parsing complete" 1>&2
   #run script based on modifier
-  if [ "$ARGS_TO_RFUNC" == "" ]; then
-    echo "parsing complete script no output" 1>&2
+  if [ "$VAR_RETURN" == "" ]; then
+   # echo "parsing complete script no output" 1>&2
     exit 1
   else
     if [ "$sstools_modifier" == "ad-hoc" ]; then
-      echo "execute som function here if you develop any"
+      eval $VAR_RETURN
+      #echo $VAR_RETURN
     elif [ "$sstools_modifier" == "lookup" ]; then
       echo "execute som function here if you develop any"
     else

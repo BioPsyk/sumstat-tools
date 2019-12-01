@@ -2,7 +2,10 @@
 #whatever the input make it array
 paramarray=($@)
 
-unset sstools_modifier location
+unset sstools_modifier location names beautify
+
+#set default outfile separator (infile is made as tab-sep)
+separator="\t"
 
 function general_usage(){
       echo "Usage:"
@@ -13,13 +16,13 @@ function general_usage(){
 # which_usage
 function adhoc_usage(){
       echo "Usage:"
-      echo "    sstools-gb which -h                      (Display this help message)"
+      echo "    sstools-gb ad-hoc -h                      (Display this help message)"
       echo " "
 
 }
 function interactive_usage(){
       echo "Usage:"
-      echo "    sstools-gb inter -h                      (Display this help message)"
+      echo "    sstools-gb interactive -h                 (Display this help message)"
       echo " "
       echo " "
 }
@@ -45,7 +48,7 @@ esac
 paramarray=("${paramarray[@]:1}")
 
 # starting getops with :, puts the checking in silent mode for errors.
-while getopts ":hl" opt "${paramarray[@]}"; do
+while getopts ":hlnbs:" opt "${paramarray[@]}"; do
   case ${opt} in
     h )
       if [ "$sstools_modifier" == "ad-hoc" ]; then
@@ -57,6 +60,15 @@ while getopts ":hl" opt "${paramarray[@]}"; do
       ;;
     l )
       location=true
+      ;;
+    s )
+      separator="$OPTARG"
+      ;;
+    n )
+      names=true
+      ;;
+    b )
+      beautify=true
       ;;
     \? )
       echo "Invalid Option: -$OPTARG" 1>&2
@@ -71,25 +83,38 @@ done
 
 # check that all required arguments for the selected modifier is set
 if [ "$sstools_modifier" == "ad-hoc" ] ; then
-  if [ -n "$location" ] ; then
-    # list all available ad-hoc functions for location
-    cat ${SSTOOLS_ADHOC_FUNCTIONS_LOCATION} | awk -vOFS="\t" '{print $1, $2, $3}' 1>&2
-    exit 0
-  else
-    echo "Error: no params are set"
-    which_usage 1>&2 
-    exit 1
-fi
-elif [ "$sstools_modifier" == "interactive" ]; then
-  
-  echo "This code has to be written"
+  if [ $location ] ; then
+    #where are the special functions for locations stored
+    cmd1="cat ${SSTOOLS_ADHOC_FUNCTIONS_LOCATION}"
+
+    #use out file separator
+    cmd1="${cmd1} | awk -vOFS='${separator}' '{print \$1, \$2, \$3, \$4}'"
+
+    if [ $names ] ; then
+      :
+    else
+      cmd1="${cmd1} | tail -n+2"
+    fi
+    if [ $beautify ] ; then
+      cmd1="${cmd1} | column -t"
+    fi
+  fi
 
 else
-  echo "Error: a modifier has to be set"
-  general_usage 1>&2
+  echo "Error: no params are set"
+  adhoc_usage 1>&2 
   exit 1
 fi
 
-#return all set arguments
-echo "${toreturn}"
+## The interactive code part
+#if [ "$sstools_modifier" == "interactive" ]; then
+#  
+#  echo "This code has to be written"
+#
+#else
+#  echo "Error: a modifier has to be set"
+#  general_usage 1>&2
+#  exit 1
+#fi
 
+echo "$cmd1"

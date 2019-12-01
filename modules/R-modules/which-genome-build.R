@@ -10,6 +10,7 @@ chr_ix=args[2]
 bp_ix=args[3]
 rs_ix=args[4]
 file=args[5]
+SSTOOLS_ROOT=args[6]
 
 #libdir="/home/projects/cu_10009/general/R-libraries/R_3.6.1_Bioc_3.10_library"
 #
@@ -35,7 +36,7 @@ file=args[5]
 .libPaths(libdir)
 
 #read header
-AWK_SPLIT_TO_NEWLINE="modules/awk-modules/split-string-from-whitespace-to-newline.awk"
+AWK_SPLIT_TO_NEWLINE=paste(SSTOOLS_ROOT, "/modules/awk-modules/split-string-from-whitespace-to-newline.awk", sep="")
 text0 <- paste("zcat ", file, " | head -n1 | awk -f ", AWK_SPLIT_TO_NEWLINE, sep="")
 header <- system(text0, intern=TRUE)
 
@@ -69,7 +70,7 @@ if (chr_tf & bp_tf | rs_tf){
   if (chr_tf  & bp_tf){
     
     #use special awk split function
-    AWK_SELECT_BY_COLNAME="modules/awk-modules/select-columns-from-index.awk"
+    AWK_SELECT_BY_COLNAME=paste(SSTOOLS_ROOT, "/modules/awk-modules/select-columns-from-index.awk", sep="")
     text1 <- paste("zcat ", file, " | head -n1000 | gawk -f ", AWK_SELECT_BY_COLNAME, " -v mapcols=\"",chr_ix,"\" -v newcols=\"chr\" | tail -n+2", sep="")
     text2 <- paste("zcat ", file, " | head -n1000 | gawk -f ", AWK_SELECT_BY_COLNAME, " -v mapcols=\"",bp_ix,"\" -v newcols=\"bp\" | tail -n+2", sep="")
     #text1 <- paste("zcat ", file, " | head -n3000 | tail -n+2 | awk '{print $",chr_ix2,"}' ")

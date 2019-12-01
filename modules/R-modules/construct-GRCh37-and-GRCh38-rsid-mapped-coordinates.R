@@ -11,6 +11,7 @@ rs_ix=args[4]
 file=args[5]
 gb=args[6]
 outDir=args[7]
+SSTOOLS_ROOT=args[8]
 
 #Arguments retrieved
 message(paste("-------------------------------------",sep=""))
@@ -55,13 +56,13 @@ message(paste("-------------------------------------",sep=""))
 .coerce_to_GRCh38_from_genome_build_info <- function(gr, gb){
   suppressWarnings(seqlevelsStyle(gr) <- "UCSC")
   if(gb=="GRCh35"){
-    ch = import.chain("data/liftover/hg17ToHg38.over.chain")
+    ch = import.chain(paste(SSTOOLS_ROOT, "/data/liftover/hg17ToHg38.over.chain", sep=""))
     anngr2.GRCh38 = liftOver(gr, ch)
   }else if(gb=="GRCh36"){
-    ch = import.chain("data/liftover/hg18ToHg38.over.chain")
+    ch = import.chain(paste(SSTOOLS_ROOT, "/data/liftover/hg18ToHg38.over.chain", sep=""))
     anngr2.GRCh38 = liftOver(gr, ch)
   }else if(gb=="GRCh37"){
-    ch = import.chain("data/liftover/hg19ToHg38.over.chain")
+    ch = import.chain(paste(SSTOOLS_ROOT, "/data/liftover/hg19ToHg38.over.chain", sep=""))
     anngr2.GRCh38 = liftOver(gr, ch)
   }else{
     #If the data is 38 (hg38), then the data is already in the right format
@@ -71,7 +72,7 @@ message(paste("-------------------------------------",sep=""))
 }
 
 .coerce_from_GRCh38_to_GRCh37 <- function(gr){
-  ch = import.chain("data/liftover/hg38ToHg19.over.chain")
+  ch = import.chain(paste(SSTOOLS_ROOT, "/data/liftover/hg38ToHg19.over.chain", sep=""))
   suppressWarnings(seqlevelsStyle(gr) <- "UCSC")
   liftOver(gr, ch)
 }
@@ -101,19 +102,19 @@ message(paste("-------------------------------------",sep=""))
   fwrite(dt, file=pathToMissingRsidFile, sep="\t")
 }
 .print_to_file_locations_having_rsid <- function(gr, pathToFoundRsidFile){
-  dt <- data.table(ix=mcols(gr)[["ix"]], CHR=sub("chr","", as.character(seqnames(gr)), ignore.case=TRUE), POS=start(gr))
+  dt <- data.table(ix=mcols(gr)[["ix"]], CHR=sub("chr","", as.character(seqnames(gr)), ignore.case=TRUE), POS=start(gr), dbSNP151=mcols(gr)[["RefSNP_id"]])
   fwrite(dt, file=pathToFoundRsidFile, sep="\t")
 }
 
 fetchColFromFile <- function(file, field_ix){
   #use special awk split function
-  AWK_SELECT_BY_COLNAME="modules/awk-modules/select-columns-from-index.awk"
+  AWK_SELECT_BY_COLNAME=paste(SSTOOLS_ROOT, "/modules/awk-modules/select-columns-from-index.awk", sep="")
   text1 <- paste("zcat ", file, " | head -n1000 | gawk -f ", AWK_SELECT_BY_COLNAME, " -v mapcols=\"",field_ix,"\" -v newcols=\"",field_ix,"\" | tail -n+2", sep="")
   system(text1, intern=TRUE)
 }
 
 .getHeaderFromFile <- function(file){
-  AWK_SPLIT_TO_NEWLINE="modules/awk-modules/split-string-from-whitespace-to-newline.awk"
+  AWK_SPLIT_TO_NEWLINE=paste(SSTOOLS_ROOT, "/modules/awk-modules/split-string-from-whitespace-to-newline.awk", sep="")
   text0 <- paste("zcat ", file, " | head -n1 | awk -f ", AWK_SPLIT_TO_NEWLINE, sep="")
   header <- system(text0, intern=TRUE)
   header
