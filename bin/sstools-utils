@@ -36,6 +36,9 @@ if [ $RESULT -eq 0 ]; then
     elif [ "$sstools_modifier" == "ad-hoc-do" ]; then
       #echo $VAR_RETURN
       eval $VAR_RETURN
+    elif [ "$sstools_modifier" == "assemble" ]; then
+      #echo $VAR_RETURN
+      eval $VAR_RETURN
     else
       echo "no modifier" 1>&2
     fi

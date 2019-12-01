@@ -2,7 +2,7 @@
 #whatever the input make it array
 paramarray=($@)
 
-unset sstools_modifier location names beautify infile specialfunction newcolnames
+unset sstools_modifier location names beautify infile specialfunction successmapping
 
 #set default outfile separator (infile is made as tab-sep)
 separator="\t"
@@ -20,10 +20,17 @@ function adhoc_usage(){
       echo " "
 
 }
-# adhoc
+# adhocdo
 function adhocdo_usage(){
       echo "Usage:"
       echo "    sstools-gb ad-hoc-do -h                      (Display this help message)"
+      echo " "
+
+}
+# assemble
+function asseble_usage(){
+      echo "Usage:"
+      echo "    sstools-gb assemble -h                      (Display this help message)"
       echo " "
 
 }
@@ -38,10 +45,17 @@ function interactive_usage(){
 case "${paramarray[0]}" in
   ad-hoc)
     sstools_modifier=${paramarray[0]}
+    getoptsstring=":hlnbs:"
     shift # Remove `install` from the argument list
     ;;
   ad-hoc-do)
     sstools_modifier=${paramarray[0]}
+    getoptsstring=":hn:f:k:"
+    shift # Remove `install` from the argument list
+    ;;
+  assemble)
+    sstools_modifier=${paramarray[0]}
+    getoptsstring=":hn:f:g:"
     shift # Remove `install` from the argument list
     ;;
   interactive)
@@ -59,13 +73,15 @@ esac
 paramarray=("${paramarray[@]:1}")
 
 # starting getops with :, puts the checking in silent mode for errors.
-while getopts ":hlnbs:f:k:c:" opt "${paramarray[@]}"; do
+while getopts "${getoptsstring}" opt "${paramarray[@]}"; do
   case ${opt} in
     h )
       if [ "$sstools_modifier" == "ad-hoc" ]; then
         adhoc_usage 1>&2
       elif [ "$sstools_modifier" == "ad-hoc" ]; then
         adhocdo_usage 1>&2
+      elif [ "$sstools_modifier" == "assemble" ]; then
+        assemble_usage 1>&2
       elif [ "$sstools_modifier" == "interactive" ]; then
         interactive_usage 1>&2
       fi
@@ -78,19 +94,25 @@ while getopts ":hlnbs:f:k:c:" opt "${paramarray[@]}"; do
       separator="$OPTARG"
       ;;
     n )
-      names=true
+      if [ "$sstools_modifier" == "ad-hoc" ]; then
+        names=true
+      elif [ "$sstools_modifier" == "ad-hoc-do" ]; then
+        names="$OPTARG"
+      elif [ "$sstools_modifier" == "ad-hoc-do" ]; then
+        names=true
+      fi
       ;;
     b )
       beautify=true
+      ;;
+    g )
+      successmapping="$OPTARG"
       ;;
     f )
       infile="$OPTARG"
       ;;
     k )
       specialfunction="$OPTARG"
-      ;;
-    c )
-      newcolnames="$OPTARG"
       ;;
     \? )
       echo "Invalid Option: -$OPTARG" 1>&2
@@ -123,7 +145,10 @@ if [ "$sstools_modifier" == "ad-hoc" ] ; then
     if [ $beautify ] ; then
       cmd1="${cmd1} | column -t"
     fi
-
+  else
+    echo "Error: not enough params are set"
+    adhocdo_usage 1>&2 
+    exit 1
   fi
 elif [ "$sstools_modifier" == "ad-hoc-do" ] ; then
   if [ -n "$infile" ] && [ -n "$specialfunction" ]; then
@@ -131,17 +156,30 @@ elif [ "$sstools_modifier" == "ad-hoc-do" ] ; then
     cmd1="zcat ${infile} | gawk -f ${SSTOOLS_ADHOCDO_FUNCTIONS_ARRANGE} -v mapcols='${specialfunction}'"
     
     #which colnames to use in new output
-    if [ -n "$newcolnames" ] ; then
-      cmd1="${cmd1} -v newcols='${newcolnames}'"
+    if [ -n "$names" ] ; then
+      cmd1="${cmd1} -v newcols='${names}'"
     else
-      newcolnames="NEW"
-      cmd1="${cmd1} -v newcols='${newcolnames}'"
+      cmd1="${cmd1} -v newcols='tmp' | tail -n+2"
     fi
   else
     echo "Error: not enough params are set"
     adhocdo_usage 1>&2 
     exit 1
   fi
+elif [ "$sstools_modifier" == "assemble" ] ; then
+  if [ -n "$infile" ] && [ -n "$successmapping" ] ; then
+
+  cmd1="awk -v newheader='$((head -n1 ${successmapping} & gzip -dc ${infile} | head -n1) | awk -vRS='\n' -vORS='' 'NR==1{print $0"\t"}; NR==2{print $0"\n"}')' 'BEGIN{print newheader} NR==FNR{a[\$1]=\$0;next} FNR in a{print \$0, a[FNR]}' <(tail -n+2 ${successmapping}) <(gzip -dc ${infile} | tail -n+2)"
+
+  else
+    echo "Error: not enough params are set"
+    adhocdo_usage 1>&2 
+    exit 1
+  fi
+else
+  echo "Error: not enough params are set"
+  adhocdo_usage 1>&2 
+  exit 1
 fi
 
 ## The interactive code part
