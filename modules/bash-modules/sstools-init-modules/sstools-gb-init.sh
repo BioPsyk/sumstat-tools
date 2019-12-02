@@ -2,7 +2,7 @@
 #whatever the input make it array
 paramarray=($@)
 
-unset sstools_modifier R_library chr_field_name bp_field_name rs_field_name infile_path genome_build output_dir
+unset sstools_modifier R_library chr_field_name bp_field_name rs_field_name infile_path genome_build output_dir input_dir gbmapfile inx output_file
 
 function general_usage(){
       echo "Usage:"
@@ -22,6 +22,11 @@ function which_usage(){
       echo "    sstools-gb which -l LIBLOCATION -r RSID"
       echo " "
 }
+function whichwrap_usage(){
+      echo "Usage:"
+      echo "    sstools-gb which-wrap -h                      (Display this help message)"
+      echo " "
+}
 function lookup_usage(){
       echo "Usage:"
       echo "    sstools-gb lookup -h                      (Display this help message)"
@@ -38,10 +43,17 @@ function lookup_usage(){
 case "${paramarray[0]}" in
   which)
     sstools_modifier=${paramarray[0]}
+    getoptsstring=":hc:p:r:f:l:g:"
+    shift # Remove `install` from the argument list
+    ;;
+  which-wrap)
+    sstools_modifier=${paramarray[0]}
+    getoptsstring=":ho:d:m:i:"
     shift # Remove `install` from the argument list
     ;;
   lookup)
     sstools_modifier=${paramarray[0]}
+    getoptsstring=":hc:p:r:f:l:g:o:"
     shift # Remove `install` from the argument list
     ;;
   *)
@@ -55,11 +67,13 @@ esac
 paramarray=("${paramarray[@]:1}")
 
 # starting getops with :, puts the checking in silent mode for errors.
-while getopts ":hc:p:r:f:l:g:o:" opt "${paramarray[@]}"; do
+while getopts "${getoptsstring}" opt "${paramarray[@]}"; do
   case ${opt} in
     h )
       if [ "$sstools_modifier" == "which" ]; then
         which_usage 1>&2
+      elif [ "$sstools_modifier" == "which-wrap" ]; then
+        whichwrap_usage 1>&2
       elif [ "$sstools_modifier" == "lookup" ]; then
         lookup_usage 1>&2
       fi
@@ -85,8 +99,22 @@ while getopts ":hc:p:r:f:l:g:o:" opt "${paramarray[@]}"; do
       SSTOOLS_RLIB=$OPTARG
       ;;
     o )
-      #if not set, a default is already set in config file (user or main)
-      output_dir=$OPTARG
+      if [ "$sstools_modifier" == "which" ]; then
+        output_file=$OPTARG
+      elif [ "$sstools_modifier" == "which-wrap" ]; then
+        output_file=$OPTARG
+      elif [ "$sstools_modifier" == "lookup" ]; then
+        output_dir=$OPTARG
+      fi
+      ;;
+    d )
+      input_dir=$OPTARG
+      ;;
+    m )
+      gbmapfile=$OPTARG
+      ;;
+    i )
+      inx=$OPTARG
       ;;
     \? )
       echo "Invalid Option: -$OPTARG" 1>&2
@@ -118,6 +146,14 @@ if [ "$sstools_modifier" == "which" ] ; then
     which_usage 1>&2 
     exit 1
 fi
+elif [ "$sstools_modifier" == "which-wrap" ]; then
+  if [ -n "$input_dir" ] &&  [ -n "$gbmapfile" ] &&  [ -n "$output_file" ] && [ -n "$inx" ] ; then
+    toreturn="${input_dir} ${gbmapfile} ${output_file} ${inx}"
+  else
+    echo "Error: all required params have to be set, infile missing"
+    which_usage 1>&2 
+    exit 1
+  fi
 elif [ "$sstools_modifier" == "lookup" ]; then
   if [ -n "$infile_path" ] && [ -n "$genome_build" ] && [ -n "$output_dir" ] ; then
     if [ -n "$chr_field_name" ] && [ -n "$bp_field_name" ] && [ -n "$rs_field_name" ] ; then

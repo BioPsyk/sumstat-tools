@@ -33,6 +33,9 @@ if [ $RESULT -eq 0 ]; then
     if [ "$sstools_modifier" == "which" ]; then
       #echo "${ARGS_TO_RFUNC[@]}"
       ${SSTOOLS_RSOFT}/Rscript ${SSTOOLS_GB_WHICH_RSCRIPT} "${ARGS_TO_RFUNC[@]}" ${SSTOOLS_ROOT_ENV}
+    elif [ "$sstools_modifier" == "which-wrap" ]; then
+      echo "${ARGS_TO_RFUNC[@]}"
+      #${SSTOOLS_RSOFT}/Rscript ${SSTOOLS_GB_LOOKUP_RSCRIPT} "${ARGS_TO_RFUNC[@]}" ${SSTOOLS_ROOT_ENV}
     elif [ "$sstools_modifier" == "lookup" ]; then
       #echo "${ARGS_TO_RFUNC[@]}"
       ${SSTOOLS_RSOFT}/Rscript ${SSTOOLS_GB_LOOKUP_RSCRIPT} "${ARGS_TO_RFUNC[@]}" ${SSTOOLS_ROOT_ENV}
