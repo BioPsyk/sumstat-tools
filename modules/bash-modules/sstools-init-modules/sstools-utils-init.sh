@@ -46,6 +46,12 @@ function nrow(){
       echo " "
       echo " "
 }
+function idexists(){
+      echo "Usage:"
+      echo "    sstools-gb idexists -h                 (Display this help message)"
+      echo " "
+      echo " "
+}
 
 
 # check for and then remove first modifier from arguments list.
@@ -75,6 +81,11 @@ case "${paramarray[0]}" in
     getoptsstring=":hf:n"
     shift # Remove `install` from the argument list
     ;;
+  idexists)
+    sstools_modifier=${paramarray[0]}
+    getoptsstring=":hfp:"
+    shift # Remove `install` from the argument list
+    ;;
   *)
     echo "you have to specify a modifier, see below for example"
     general_usage 1>&2
@@ -91,7 +102,7 @@ while getopts "${getoptsstring}" opt "${paramarray[@]}"; do
     h )
       if [ "$sstools_modifier" == "ad-hoc" ]; then
         adhoc_usage 1>&2
-      elif [ "$sstools_modifier" == "ad-hoc" ]; then
+      elif [ "$sstools_modifier" == "ad-hoc-do" ]; then
         adhocdo_usage 1>&2
       elif [ "$sstools_modifier" == "assemble" ]; then
         assemble_usage 1>&2
@@ -99,6 +110,8 @@ while getopts "${getoptsstring}" opt "${paramarray[@]}"; do
         interactive_usage 1>&2
       elif [ "$sstools_modifier" == "nrow" ]; then
         nrow_usage 1>&2
+      elif [ "$sstools_modifier" == "idexists" ]; then
+        idexists_usage 1>&2
       fi
       exit 0
       ;;
@@ -132,6 +145,9 @@ while getopts "${getoptsstring}" opt "${paramarray[@]}"; do
       ;;
     k )
       specialfunction="$OPTARG"
+      ;;
+    p )
+      paths="$OPTARG"
       ;;
     o )
       outfile="$OPTARG"
@@ -217,7 +233,21 @@ elif [ "$sstools_modifier" == "nrow" ] ; then
     cmd1="${cmd1} | wc -l | awk '{print $1}'"
   else
     echo "Error: not enough params are set"
-    interactive_usage 1>&2 
+    nrow_usage 1>&2 
+    exit 1
+  fi
+elif [ "$sstools_modifier" == "idexists" ] ; then
+  if [ -n "$infile" ] ; then
+    if [ -n "$paths" ] ; then
+      cmd1="$infile $paths"
+    else
+      echo "Error: not enough params are set"
+      idexists_usage 1>&2 
+      exit 1
+    fi
+  else
+    echo "Error: not enough params are set"
+    idexists_usage 1>&2 
     exit 1
   fi
 else

@@ -1,3 +1,48 @@
+function grep_from_mapfile() {
+  file=$1
+  field=$2
+  invert=$3
+  names=$4
+
+
+  if $names ; then
+    cmd="cat ${file}"
+  else
+    cmd="tail -n+2 ${file}"
+  fi
+  cmd="${cmd} | awk -vfield=${field} '{print \$field}' "
+
+  if $invert ; then
+    cmd="${cmd} | egrep -v"
+  else
+    cmd="${cmd} | egrep"
+  fi
+  read data
+  eval "${cmd} '${data}'"
+}
+
+#echo "DIAG" | grep_from_mapfile $file $field false false
+#echo "DIAG" | grep_from_mapfile $file $field true false
+#echo "DIAG|dom" | grep_from_mapfile $file $field true false
+
+function basename_stream() {
+  while read line; do
+    basename $line
+  done
+}
+
+function comma2newline() {
+  while read line; do
+    echo $line | awk '{gsub(" *, *","\n",$0); print $0}'
+  done
+}
+
+function newline2symbol() {
+  while read line; do echo $line; done | paste -s -d${1}
+}
+
+#echo "roligt/hej1,DIAG, hej3" | comma2newline | basename_stream | newline2symbol '|' | grep_from_mapfile $file $field $invert $names
+
 function interactiveWalkerMultiple() {
 
   filepaths=$1
@@ -5,30 +50,16 @@ function interactiveWalkerMultiple() {
   newheader=$3
   SSTOOLS_ROOT=$4
 
-  #splitString="${SSTOOLS_ROOT}/modules/awk-modules/split-string-from-comma-to-whitespace.awk"
-  #filearray=($(echo ${filepaths} | awk -f ${splitString} ))
-  #filearraylength=${#filearray[@]}
-
-  #source "${SSTOOLS_ROOT}/modules/bash-modules/studyid-which-remain.sh"
-
-  # Check if a mapfile with the same name already exists and if so quite.
-  # This is to reassure that a file is not removed by mistake.
-  # Therefore remove it manually. Rerunning this script can still take
-  # a lot of effort as it is interactive.
   if [ -f ${mapout} ]; 
   then
-    splitString="${SSTOOLS_ROOT}/modules/awk-modules/split-string-from-comma-to-whitespace.awk"
-    newfilearray=($(echo ${filepaths} | awk -f ${splitString} ))
-    newfilearraylength=${#newfilearray[@]}
-    basenames="$(basename ${newfilearray[0]})"
-    for (( i=1; i<${newfilearraylength}; i++ ));
-    do
-      basenames="${basenames},$(basename ${newfilearray[i]})" 
-    done 
+    #get mapfile names
+    regformat="$(echo "$filepaths" | comma2newline | basename_stream | newline2symbol '|' )"
+    filenamessalready=($(echo "$regformat" | grep_from_mapfile $mapout 1 FALSE FALSE))
+    filenamesremain=($(echo "$regformat" | grep_from_mapfile $mapout 1 TRUE FALSE))
 
-    filesalready=($(tail -n+2 ${mapout} | awk -vold=$basenames 'BEGIN{split(old,out,",")} {for(j=1; j <= length(out); j++){if ($1 == out[j]){print $1}}}'))
-    #remove the one that already exists
-    filepathsremain=($(for path in "${newfilearray[@]}"; do echo "${path}"; done | grep -v $filesalready))
+    #get full path
+    regformat2="$(for line in "${filenamesremain[@]}"; do echo $line | newline2symbol '|' )"
+    filepathsremain=$(echo "$filepaths" | comma2newline | grep $regformat2)
     filepathsremainlength=${#filepathsremain[@]}
   else
     #if maput does not exist we can safely use all avail filenames

@@ -206,7 +206,7 @@ for (( j=0; j<${nrows}; j++ )); do \
 ( \
 echo "file $j starting ..."; \
 
-sstools-gb which -d ${DATA_DIR} -m ${MAPFILE_GWAS} -o ${MAPFILE_GWAS_2} -i ${j}
+sstools-gb which-wrap -d ${DATA_DIR} -m ${MAPFILE_GWAS} -o ${MAPFILE_GWAS_2} -i ${j}
 
 echo "file $j done ..."; \
 ) & \
