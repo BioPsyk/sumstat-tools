@@ -9,46 +9,46 @@ separator="\t"
 
 function general_usage(){
       echo "Usage:"
-      echo "    sstools-gb ad-hoc -h                     Display help message for the 'ad-hoc' modifier"
-      echo "    sstools-gb interactive -h                Display help message for the 'interactive' modifier"
+      echo "    sstools-utils ad-hoc -h                     Display help message for the 'ad-hoc' modifier"
+      echo "    sstools-utils interactive -h                Display help message for the 'interactive' modifier"
 }
 
 # adhoc
 function adhoc_usage(){
       echo "Usage:"
-      echo "    sstools-gb ad-hoc -h                      (Display this help message)"
+      echo "    sstools-utils ad-hoc -h                      (Display this help message)"
       echo " "
 
 }
 # adhocdo
 function adhocdo_usage(){
       echo "Usage:"
-      echo "    sstools-gb ad-hoc-do -h                      (Display this help message)"
+      echo "    sstools-utils ad-hoc-do -h                      (Display this help message)"
       echo " "
 
 }
 # assemble
 function asseble_usage(){
       echo "Usage:"
-      echo "    sstools-gb assemble -h                      (Display this help message)"
+      echo "    sstools-utils assemble -h                      (Display this help message)"
       echo " "
 
 }
 function interactive_usage(){
       echo "Usage:"
-      echo "    sstools-gb interactive -h                 (Display this help message)"
+      echo "    sstools-utils interactive -h                 (Display this help message)"
       echo " "
       echo " "
 }
 function nrow(){
       echo "Usage:"
-      echo "    sstools-gb nrow -h                 (Display this help message)"
+      echo "    sstools-utils nrow -h                 (Display this help message)"
       echo " "
       echo " "
 }
-function idexists(){
+function file-in-map(){
       echo "Usage:"
-      echo "    sstools-gb idexists -h                 (Display this help message)"
+      echo "    sstools-utils file-in-map -h                 (Display this help message)"
       echo " "
       echo " "
 }
@@ -81,9 +81,9 @@ case "${paramarray[0]}" in
     getoptsstring=":hf:n"
     shift # Remove `install` from the argument list
     ;;
-  idexists)
+  file-in-map)
     sstools_modifier=${paramarray[0]}
-    getoptsstring=":hfp:"
+    getoptsstring=":hf:p:o:d:"
     shift # Remove `install` from the argument list
     ;;
   *)
@@ -110,8 +110,8 @@ while getopts "${getoptsstring}" opt "${paramarray[@]}"; do
         interactive_usage 1>&2
       elif [ "$sstools_modifier" == "nrow" ]; then
         nrow_usage 1>&2
-      elif [ "$sstools_modifier" == "idexists" ]; then
-        idexists_usage 1>&2
+      elif [ "$sstools_modifier" == "file-in-map" ]; then
+        fileinmap_usage 1>&2
       fi
       exit 0
       ;;
@@ -151,6 +151,9 @@ while getopts "${getoptsstring}" opt "${paramarray[@]}"; do
       ;;
     o )
       outfile="$OPTARG"
+      ;;
+    d )
+      indir="$OPTARG"
       ;;
     \? )
       echo "Invalid Option: -$OPTARG" 1>&2
@@ -236,15 +239,12 @@ elif [ "$sstools_modifier" == "nrow" ] ; then
     nrow_usage 1>&2 
     exit 1
   fi
-elif [ "$sstools_modifier" == "idexists" ] ; then
-  if [ -n "$infile" ] ; then
-    if [ -n "$paths" ] ; then
-      cmd1="$infile $paths"
-    else
-      echo "Error: not enough params are set"
-      idexists_usage 1>&2 
-      exit 1
-    fi
+elif [ "$sstools_modifier" == "file-in-map" ] ; then
+  if [ -n "$paths" ] && [ -n "$outfile" ]; then
+    "$inverse" ; then
+      cmd1="function paths_in_map $paths" $infile "$inverse"
+  elif [ -n "$infile" ] && [ -n "$outfile" ] && [ -n "$indir" ]; then
+      cmd1="function entries_in_map $infile" $outfile "$inverse" $indir
   else
     echo "Error: not enough params are set"
     idexists_usage 1>&2 
