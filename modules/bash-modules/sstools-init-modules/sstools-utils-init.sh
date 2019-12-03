@@ -155,6 +155,9 @@ while getopts "${getoptsstring}" opt "${paramarray[@]}"; do
     d )
       indir="$OPTARG"
       ;;
+    i )
+      inverse="$OPTARG"
+      ;;
     \? )
       echo "Invalid Option: -$OPTARG" 1>&2
       exit 1
@@ -241,7 +244,6 @@ elif [ "$sstools_modifier" == "nrow" ] ; then
   fi
 elif [ "$sstools_modifier" == "file-in-map" ] ; then
   if [ -n "$paths" ] && [ -n "$outfile" ]; then
-    "$inverse" ; then
       cmd1="function paths_in_map $paths" $infile "$inverse"
   elif [ -n "$infile" ] && [ -n "$outfile" ] && [ -n "$indir" ]; then
       cmd1="function entries_in_map $infile" $outfile "$inverse" $indir
