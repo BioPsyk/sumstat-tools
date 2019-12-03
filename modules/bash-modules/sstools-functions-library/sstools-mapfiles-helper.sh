@@ -201,7 +201,7 @@ function interactiveWalkerMultiple() {
 
   if [ -f ${mapout} ]; 
   then
-    filepathsremain=($(function paths_in_map $filepaths $mapout true))
+    filepathsremain=($(paths_in_map $filepaths $mapout true))
     filepathsremainlength=${#filepathsremain[@]}
   else
     #if maput does not exist we can safely use all avail filenames
@@ -230,9 +230,9 @@ function interactiveWalkerSingle() {
   
   filename="$(basename ${filepath})"
 
-  #source simple and special case
-  source "${SSTOOLS_ROOT}/modules/bash-modules/simple-case-module.sh"
-  source "${SSTOOLS_ROOT}/modules/bash-modules/special-case-module.sh"
+  #source simple and special case (these aren now sourced or included from elsewhere)
+  #source "${SSTOOLS_ROOT}/modules/bash-modules/simple-case-module.sh"
+  #source "${SSTOOLS_ROOT}/modules/bash-modules/special-case-module.sh"
   
   #declare new header names and order
   #newheader="CHR,BP,A1,Zscore,P"
