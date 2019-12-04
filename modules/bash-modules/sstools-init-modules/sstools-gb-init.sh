@@ -27,6 +27,11 @@ function whichwrap_usage(){
       echo "    sstools-gb which-wrap -h                      (Display this help message)"
       echo " "
 }
+function whichexists(){
+      echo "Usage:"
+      echo "    sstools-gb which-exists -h                      (Display this help message)"
+      echo " "
+}
 function lookup_usage(){
       echo "Usage:"
       echo "    sstools-gb lookup -h                      (Display this help message)"
@@ -51,6 +56,11 @@ case "${paramarray[0]}" in
     getoptsstring=":ho:d:m:i:"
     shift # Remove `install` from the argument list
     ;;
+  which-exists)
+    sstools_modifier=${paramarray[0]}
+    getoptsstring=":hf:m:ikn"
+    shift # Remove `install` from the argument list
+    ;;
   lookup)
     sstools_modifier=${paramarray[0]}
     getoptsstring=":hc:p:r:f:l:g:o:"
@@ -66,6 +76,7 @@ esac
 # remove modifier, 1st element
 paramarray=("${paramarray[@]:1}")
 
+
 # starting getops with :, puts the checking in silent mode for errors.
 while getopts "${getoptsstring}" opt "${paramarray[@]}"; do
   case ${opt} in
@@ -74,6 +85,8 @@ while getopts "${getoptsstring}" opt "${paramarray[@]}"; do
         which_usage 1>&2
       elif [ "$sstools_modifier" == "which-wrap" ]; then
         whichwrap_usage 1>&2
+      elif [ "$sstools_modifier" == "which-exists" ]; then
+        whichexists_usage 1>&2
       elif [ "$sstools_modifier" == "lookup" ]; then
         lookup_usage 1>&2
       fi
@@ -114,7 +127,17 @@ while getopts "${getoptsstring}" opt "${paramarray[@]}"; do
       gbmapfile=$OPTARG
       ;;
     i )
+      if [ "$sstools_modifier" == "which-exists" ]; then
+        inx=true
+      else
       inx=$OPTARG
+      fi
+      ;;
+    k )
+      invert=true
+      ;;
+    n )
+      names=true
       ;;
     \? )
       echo "Invalid Option: -$OPTARG" 1>&2
@@ -149,6 +172,29 @@ fi
 elif [ "$sstools_modifier" == "which-wrap" ]; then
   if [ -n "$input_dir" ] &&  [ -n "$gbmapfile" ] &&  [ -n "$output_file" ] && [ -n "$inx" ] ; then
     toreturn="${input_dir} ${gbmapfile} ${output_file} ${inx}"
+  else
+    echo "Error: all required params have to be set, infile missing"
+    which_usage 1>&2 
+    exit 1
+  fi
+elif [ "$sstools_modifier" == "which-exists" ] ; then
+  if [ -n "$infile_path" ] &&  [ -n "$gbmapfile" ] ; then
+    if [ -n "$invert" ] ; then
+      :
+    else
+      invert=false
+    fi
+    if [ -n "$inx" ] ; then
+      :
+    else
+      inx=false
+    fi
+    if [ -n "$names" ] ; then
+      :
+    else
+      names=false
+    fi
+    toreturn="${infile_path} ${gbmapfile} ${invert} ${names} ${inx}"
   else
     echo "Error: all required params have to be set, infile missing"
     which_usage 1>&2 

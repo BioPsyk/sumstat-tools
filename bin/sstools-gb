@@ -18,6 +18,9 @@ source ${SSTOOLS_ROOT_ENV}/config/config-main.conf
 source ${SSTOOLS_ROOT_ENV}/config/config-user.conf
 #echo "${SSTOOLS_ROOT_ENV}"
 
+#extra functions to load
+source ${SSTOOLS_FUNCTIONS_LIBRARY}/sstools-pipe-helpers.sh
+source ${SSTOOLS_FUNCTIONS_LIBRARY}/sstools-mapfiles-helpers.sh
 
 #${SSTOOLS_ROOT_ENV}/modules/bash-modules/sstools-init-modules/sstools-gb-init.sh "$( IFS=$' '; echo "${userarr[*]}" )"
 ARGS_TO_RFUNC=($(${SSTOOLS_ROOT_ENV}/modules/bash-modules/sstools-init-modules/sstools-gb-init.sh "$( IFS=$' '; echo "${userarr[*]}" )")) 
@@ -36,6 +39,9 @@ if [ $RESULT -eq 0 ]; then
     elif [ "$sstools_modifier" == "which-wrap" ]; then
       echo "${ARGS_TO_RFUNC[@]}"
       #${SSTOOLS_RSOFT}/Rscript ${SSTOOLS_GB_LOOKUP_RSCRIPT} "${ARGS_TO_RFUNC[@]}" ${SSTOOLS_ROOT_ENV}
+    elif [ "$sstools_modifier" == "which-exists" ]; then
+      #echo "${ARGS_TO_RFUNC[@]}"
+      ids_in_mapout "${ARGS_TO_RFUNC[@]}"
     elif [ "$sstools_modifier" == "lookup" ]; then
       #echo "${ARGS_TO_RFUNC[@]}"
       ${SSTOOLS_RSOFT}/Rscript ${SSTOOLS_GB_LOOKUP_RSCRIPT} "${ARGS_TO_RFUNC[@]}" ${SSTOOLS_ROOT_ENV}

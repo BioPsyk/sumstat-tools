@@ -1,3 +1,63 @@
+function wrapselector() {
+
+  datadir=$1
+  mapin=$2
+  mapout=$3
+  inx=$4
+
+  datadir="data/gwas-summary-stats"
+  mapin="out/mapping_information/mapfile-rsids-and-postitions.txt"
+  mapout="out/mapping_information/mapfile-genome-builds.txt"
+  inx=1
+
+
+  # loop through every element in the array
+  for (( i=0; i<${filepathsremainlength}; i++ ));
+  do
+    filepath=${filepathsremain[i]}
+    interactiveWalkerSingle ${filepath} ${mapout} ${newheader} ${SSTOOLS_ROOT}
+  done
+}
+
+function ids_in_mapout() {
+  mapin=$1
+  mapout=$2
+  invert=$3
+  names=$4
+  inxreturn=$5
+
+  if $inxreturn ; then
+    if $names ; then
+      if $invert ; then
+        cmd="awk 'NR==FNR{c[\$1]++;next}; {if (\$1 in c){}else{print FNR}}' $mapout $mapin"
+      else
+        cmd="awk 'NR==FNR{c[\$1]++;next}; {if (\$1 in c){print FNR}}' $mapout $mapin"
+      fi
+    else
+      if $invert ; then
+        cmd="awk 'NR==FNR && FNR>1{c[\$1]++;next}; FNR>1{if (\$1 in c){}else{print FNR-1}}' $mapout $mapin"
+      else
+        cmd="awk 'NR==FNR && FNR>1{c[\$1]++;next}; {if (\$1 in c){print FNR-1}}' $mapout $mapin"
+      fi
+    fi
+  else
+    if $names ; then
+      if $invert ; then
+        cmd="awk 'NR==FNR{c[\$1]++;next}; {if (\$1 in c){}else{print \$1}}' $mapout $mapin"
+      else
+        cmd="awk 'NR==FNR{c[\$1]++;next}; {if (\$1 in c){print \$1}}' $mapout $mapin"
+      fi
+    else
+      if $invert ; then
+        cmd="awk 'NR==FNR && FNR>1{c[\$1]++;next}; FNR>1{if (\$1 in c){}else{print \$1}}' $mapout $mapin"
+      else
+        cmd="awk 'NR==FNR && FNR>1{c[\$1]++;next}; {if (\$1 in c){print \$1}}' $mapout $mapin"
+      fi
+    fi
+  fi
+  eval $cmd
+}
+
 function grep_from_mapfile() {
   file=$1
   field=$2
@@ -30,12 +90,13 @@ function grep_from_mapfile() {
 function paths_in_map() {
   filepaths=$1
   mapout=$2
-  inverse=false
+  inverse=$3
   #run all processing in a long pipe-maneuver
   echo "$filepaths" | comma2newline | grep "$(echo "$filepaths" | comma2newline | basename_stream | newline2symbol '|' | grep_from_mapfile $mapout 1 ${inverse} false | newline2symbol '|' )"
 }
 
-function entries_in_map() {
+
+function dirpaths_in_map() {
   infile=$1
   mapout=$2
   inverse=$3
