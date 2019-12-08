@@ -81,6 +81,28 @@ function wrap_lookup_prepare() {
 
 }
 
+function wrap_assemble_prepare() {
+
+  datadir=$1
+  mapin=$2
+  gbin=$3
+  inx=$4
+
+  #echo $datadir
+  #echo $mapin
+  #echo $gb
+  #echo $inx
+  
+  infile_path=$(filename_in_dir_from_index $datadir $mapin $inx false)
+  #mapinfo=$(mapinfo_from_index $mapin $inx false)
+  #gb=$(gbinfo_from_index $gbin $inx false)
+
+
+  #return all needed variables or run single 'which'  
+  echo "${infile_path}" 
+
+}
+
 function wrap_which_prepare() {
 
   datadir=$1

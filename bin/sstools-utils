@@ -18,6 +18,8 @@ source ${SSTOOLS_ROOT_ENV}/config/config-main.conf
 source ${SSTOOLS_ROOT_ENV}/config/config-user.conf
 #echo "${SSTOOLS_ROOT_ENV}"
 
+source ${SSTOOLS_FUNCTIONS_LIBRARY}/sstools-pipe-helpers.sh
+source ${SSTOOLS_FUNCTIONS_LIBRARY}/sstools-mapfiles-helpers.sh
 
 #${SSTOOLS_ROOT_ENV}/modules/bash-modules/sstools-init-modules/sstools-gb-init.sh "$( IFS=$' '; echo "${userarr[*]}" )"
 VAR_RETURN=$(${SSTOOLS_ROOT_ENV}/modules/bash-modules/sstools-init-modules/sstools-utils-init.sh "$( IFS=$' '; echo "${userarr[*]}" )")
@@ -36,13 +38,26 @@ if [ $RESULT -eq 0 ]; then
       eval $VAR_RETURN
     elif [ "$sstools_modifier" == "assemble" ]; then
       eval $VAR_RETURN
+    elif [ "$sstools_modifier" == "assemble-wrap" ]; then
+      VAR_RETURN=(${VAR_RETURN})
+      #echo ${VAR_RETURN[@]}
+      indir="${VAR_RETURN[0]}"
+      mapfile="${VAR_RETURN[1]}"
+      locdir="${VAR_RETURN[2]}"
+      inx="${VAR_RETURN[3]}"
+      outdir="${VAR_RETURN[4]}"
+      fname=$(eval "awk 'FNR==(${inx}+1){print \$1}' ${mapfile} ")
+      infile=$(wrap_assemble_prepare "${VAR_RETURN[@]}")
+      mapped="${locdir}/remaining_${fname%.gz}"
+      #echo $infile
+      #echo $mapped
+      #echo ${outdir}/${fname}
+      sstools-utils assemble -f $infile -g $mapped | gzip -c > ${outdir}/${fname}
     elif [ "$sstools_modifier" == "interactive" ]; then
-      source ${SSTOOLS_FUNCTIONS_LIBRARY}/sstools-pipe-helpers.sh
-      source ${SSTOOLS_FUNCTIONS_LIBRARY}/sstools-mapfiles-helpers.sh
-      type interactiveWalkerMultiple
-      echo ""
-      echo ${SSTOOLS_FUNCTIONS_LIBRARY}
-      echo ${VAR_RETURN} ${SSTOOLS_ROOT_ENV}
+      #type interactiveWalkerMultiple
+      #echo ""
+      #echo ${SSTOOLS_FUNCTIONS_LIBRARY}
+      #echo ${VAR_RETURN} ${SSTOOLS_ROOT_ENV}
       interactiveWalkerMultiple ${VAR_RETURN} ${SSTOOLS_ROOT_ENV}
     elif [ "$sstools_modifier" == "nrow" ]; then
       #echo $VAR_RETURN
