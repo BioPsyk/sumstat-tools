@@ -25,10 +25,9 @@ function filename_in_dir_from_index() {
 }
 
 function mapinfo_from_index() {
-  datadir=$1
-  mapin=$2
-  inx=$3
-  names=$4
+  mapin=$1
+  inx=$2
+  names=$3
 
   if $names ; then
     :
@@ -43,6 +42,44 @@ function mapinfo_from_index() {
 
 }
 
+function gbinfo_from_index() {
+  mapin=$1
+  inx=$2
+  names=$3
+
+  if $names ; then
+    :
+  else
+    inx2=$(( $inx + 1 ))
+  fi
+
+  cmd="awk 'FNR==${inx2}{print \$2}' ${mapin}"
+
+  mapinfo="$(eval ${cmd})"
+  echo $mapinfo
+}
+
+function wrap_lookup_prepare() {
+
+  datadir=$1
+  mapin=$2
+  gbin=$3
+  inx=$4
+
+  #echo $datadir
+  #echo $mapin
+  #echo $gb
+  #echo $inx
+  
+  infile_path=$(filename_in_dir_from_index $datadir $mapin $inx false)
+  mapinfo=$(mapinfo_from_index $mapin $inx false)
+  gb=$(gbinfo_from_index $gbin $inx false)
+
+
+  #return all needed variables or run single 'which'  
+  echo "${SSTOOLS_RLIB} ${mapinfo} ${infile_path} ${gb}" 
+
+}
 
 function wrap_which_prepare() {
 
@@ -50,15 +87,15 @@ function wrap_which_prepare() {
   mapin=$2
   mapout=$3
   inx=$4
-  
-  infile_path=$(filename_in_dir_from_index $datadir $mapin $inx false)
-  mapinfo=$(mapinfo_from_index $datadir $mapin $inx false)
 
+  infile_path=$(filename_in_dir_from_index $datadir $mapin $inx false)
+  mapinfo=$(mapinfo_from_index $mapin $inx false)
 
   #return all needed variables or run single 'which'  
   echo "${SSTOOLS_RLIB} ${mapinfo} ${infile_path}" 
 
 }
+
 
 
   

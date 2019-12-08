@@ -43,12 +43,17 @@ function lookup_usage(){
       echo "    sstools-gb lookup -l LIBLOCATION"
       echo " "
 }
+function lookupwrap_usage(){
+      echo "Usage:"
+      echo "    sstools-gb lookup-wrap -h                      (Display this help message)"
+      echo " "
+}
 
 # check for and then remove first modifier from arguments list.
 case "${paramarray[0]}" in
   which)
     sstools_modifier=${paramarray[0]}
-    getoptsstring=":hc:p:r:f:l:g:"
+    getoptsstring=":hc:p:r:f:g:"
     shift # Remove `install` from the argument list
     ;;
   which-wrap)
@@ -63,7 +68,12 @@ case "${paramarray[0]}" in
     ;;
   lookup)
     sstools_modifier=${paramarray[0]}
-    getoptsstring=":hc:p:r:f:l:g:o:"
+    getoptsstring=":hc:p:r:f:g:o:"
+    shift # Remove `install` from the argument list
+    ;;
+  lookup-wrap)
+    sstools_modifier=${paramarray[0]}
+    getoptsstring=":ho:d:m:g:i:l:"
     shift # Remove `install` from the argument list
     ;;
   *)
@@ -89,6 +99,8 @@ while getopts "${getoptsstring}" opt "${paramarray[@]}"; do
         whichexists_usage 1>&2
       elif [ "$sstools_modifier" == "lookup" ]; then
         lookup_usage 1>&2
+      elif [ "$sstools_modifier" == "lookup-wrap" ]; then
+        lookupwrap_usage 1>&2
       fi
       exit 0
       ;;
@@ -108,8 +120,7 @@ while getopts "${getoptsstring}" opt "${paramarray[@]}"; do
       genome_build=$OPTARG
       ;;
     l )
-      #if not set, a default is already set in config file (user or main)
-      SSTOOLS_RLIB=$OPTARG
+      log=$OPTARG
       ;;
     o )
       if [ "$sstools_modifier" == "which" ]; then
@@ -117,6 +128,8 @@ while getopts "${getoptsstring}" opt "${paramarray[@]}"; do
       elif [ "$sstools_modifier" == "which-wrap" ]; then
         output_file=$OPTARG
       elif [ "$sstools_modifier" == "lookup" ]; then
+        output_dir=$OPTARG
+      elif [ "$sstools_modifier" == "lookup-wrap" ]; then
         output_dir=$OPTARG
       fi
       ;;
@@ -216,6 +229,14 @@ elif [ "$sstools_modifier" == "lookup" ]; then
   else
     echo "Error: all required params have to be set"
     lookup_usage 1>&2
+    exit 1
+  fi
+elif [ "$sstools_modifier" == "lookup-wrap" ]; then
+  if [ -n "$input_dir" ] && [ -n "$mapfile" ] &&  [ -n "$genome_build" ] && [ -n "$output_dir" ] && [ -n "$inx" ] && [ -n "$log" ] ; then
+    toreturn="${input_dir} ${mapfile} ${genome_build} ${inx} ${output_dir} ${log}"
+  else
+    echo "Error: all required params have to be set, infile missing"
+    lookupwrap_usage 1>&2 
     exit 1
   fi
 else
