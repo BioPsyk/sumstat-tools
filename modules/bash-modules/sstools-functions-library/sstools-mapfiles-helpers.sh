@@ -1,23 +1,67 @@
-function wrapselector() {
+function filename_in_dir_from_index() {
+
+  datadir=$1
+  mapin=$2
+  inx=$3
+  names=$4
+
+  #datadir="data/gwas-summary-stats"
+  #mapin="out/mapping_information/mapfile-rsids-and-postitions.txt"
+  #mapout="out/mapping_information/mapfile-genome-builds.txt"
+  #inx=1
+
+  if $names ; then
+    :
+  else
+    inx2=$(( $inx + 1 ))
+  fi
+
+  cmd="awk 'FNR==${inx2}{print \$1}' ${mapin}"
+
+  filename=$(eval ${cmd}) 
+  fullpath="$(readlink -f ${datadir}/${filename})"
+  echo "$fullpath"
+
+}
+
+function mapinfo_from_index() {
+  datadir=$1
+  mapin=$2
+  inx=$3
+  names=$4
+
+  if $names ; then
+    :
+  else
+    inx2=$(( $inx + 1 ))
+  fi
+
+  cmd="awk 'FNR==${inx2}{print \$2,\$3,\$4}' ${mapin}"
+
+  mapinfo="$(eval ${cmd})"
+  echo $mapinfo
+
+}
+
+
+function wrap_which_prepare() {
 
   datadir=$1
   mapin=$2
   mapout=$3
   inx=$4
-
-  datadir="data/gwas-summary-stats"
-  mapin="out/mapping_information/mapfile-rsids-and-postitions.txt"
-  mapout="out/mapping_information/mapfile-genome-builds.txt"
-  inx=1
+  
+  infile_path=$(filename_in_dir_from_index $datadir $mapin $inx false)
+  mapinfo=$(mapinfo_from_index $datadir $mapin $inx false)
 
 
-  # loop through every element in the array
-  for (( i=0; i<${filepathsremainlength}; i++ ));
-  do
-    filepath=${filepathsremain[i]}
-    interactiveWalkerSingle ${filepath} ${mapout} ${newheader} ${SSTOOLS_ROOT}
-  done
+  #return all needed variables or run single 'which'  
+  echo "${SSTOOLS_RLIB} ${mapinfo} ${infile_path}" 
+
 }
+
+
+  
 
 function ids_in_mapout() {
   mapin=$1

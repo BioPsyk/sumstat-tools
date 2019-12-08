@@ -2,7 +2,7 @@
 #whatever the input make it array
 paramarray=($@)
 
-unset sstools_modifier R_library chr_field_name bp_field_name rs_field_name infile_path genome_build output_dir input_dir gbmapfile inx output_file
+unset sstools_modifier R_library chr_field_name bp_field_name rs_field_name infile_path genome_build output_dir input_dir mapfile inx output_file
 
 function general_usage(){
       echo "Usage:"
@@ -58,7 +58,7 @@ case "${paramarray[0]}" in
     ;;
   which-exists)
     sstools_modifier=${paramarray[0]}
-    getoptsstring=":hf:m:ikn"
+    getoptsstring=":hm:g:ikn"
     shift # Remove `install` from the argument list
     ;;
   lookup)
@@ -124,7 +124,7 @@ while getopts "${getoptsstring}" opt "${paramarray[@]}"; do
       input_dir=$OPTARG
       ;;
     m )
-      gbmapfile=$OPTARG
+      mapfile=$OPTARG
       ;;
     i )
       if [ "$sstools_modifier" == "which-exists" ]; then
@@ -170,15 +170,15 @@ if [ "$sstools_modifier" == "which" ] ; then
     exit 1
 fi
 elif [ "$sstools_modifier" == "which-wrap" ]; then
-  if [ -n "$input_dir" ] &&  [ -n "$gbmapfile" ] &&  [ -n "$output_file" ] && [ -n "$inx" ] ; then
-    toreturn="${input_dir} ${gbmapfile} ${output_file} ${inx}"
+  if [ -n "$input_dir" ] &&  [ -n "$mapfile" ] &&  [ -n "$output_file" ] && [ -n "$inx" ] ; then
+    toreturn="${input_dir} ${mapfile} ${output_file} ${inx}"
   else
     echo "Error: all required params have to be set, infile missing"
     which_usage 1>&2 
     exit 1
   fi
 elif [ "$sstools_modifier" == "which-exists" ] ; then
-  if [ -n "$infile_path" ] &&  [ -n "$gbmapfile" ] ; then
+  if [ -n "$genome_build" ] &&  [ -n "$mapfile" ] ; then
     if [ -n "$invert" ] ; then
       :
     else
@@ -194,7 +194,7 @@ elif [ "$sstools_modifier" == "which-exists" ] ; then
     else
       names=false
     fi
-    toreturn="${infile_path} ${gbmapfile} ${invert} ${names} ${inx}"
+    toreturn="${mapfile} ${genome_build} ${invert} ${names} ${inx}"
   else
     echo "Error: all required params have to be set, infile missing"
     which_usage 1>&2 
