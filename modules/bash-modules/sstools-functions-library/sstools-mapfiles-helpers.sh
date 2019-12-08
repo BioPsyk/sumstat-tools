@@ -1,3 +1,166 @@
+function filename_in_dir_from_index() {
+
+  datadir=$1
+  mapin=$2
+  inx=$3
+  names=$4
+
+  #datadir="data/gwas-summary-stats"
+  #mapin="out/mapping_information/mapfile-rsids-and-postitions.txt"
+  #mapout="out/mapping_information/mapfile-genome-builds.txt"
+  #inx=1
+
+  if $names ; then
+    :
+  else
+    inx2=$(( $inx + 1 ))
+  fi
+
+  cmd="awk 'FNR==${inx2}{print \$1}' ${mapin}"
+
+  filename=$(eval ${cmd}) 
+  fullpath="$(readlink -f ${datadir}/${filename})"
+  echo "$fullpath"
+
+}
+
+function mapinfo_from_index() {
+  mapin=$1
+  inx=$2
+  names=$3
+
+  if $names ; then
+    :
+  else
+    inx2=$(( $inx + 1 ))
+  fi
+
+  cmd="awk 'FNR==${inx2}{print \$2,\$3,\$4}' ${mapin}"
+
+  mapinfo="$(eval ${cmd})"
+  echo $mapinfo
+
+}
+
+function gbinfo_from_index() {
+  mapin=$1
+  inx=$2
+  names=$3
+
+  if $names ; then
+    :
+  else
+    inx2=$(( $inx + 1 ))
+  fi
+
+  cmd="awk 'FNR==${inx2}{print \$2}' ${mapin}"
+
+  mapinfo="$(eval ${cmd})"
+  echo $mapinfo
+}
+
+function wrap_lookup_prepare() {
+
+  datadir=$1
+  mapin=$2
+  gbin=$3
+  inx=$4
+
+  #echo $datadir
+  #echo $mapin
+  #echo $gb
+  #echo $inx
+  
+  infile_path=$(filename_in_dir_from_index $datadir $mapin $inx false)
+  mapinfo=$(mapinfo_from_index $mapin $inx false)
+  gb=$(gbinfo_from_index $gbin $inx false)
+
+
+  #return all needed variables or run single 'which'  
+  echo "${SSTOOLS_RLIB} ${mapinfo} ${infile_path} ${gb}" 
+
+}
+
+function wrap_assemble_prepare() {
+
+  datadir=$1
+  mapin=$2
+  gbin=$3
+  inx=$4
+
+  #echo $datadir
+  #echo $mapin
+  #echo $gb
+  #echo $inx
+  
+  infile_path=$(filename_in_dir_from_index $datadir $mapin $inx false)
+  #mapinfo=$(mapinfo_from_index $mapin $inx false)
+  #gb=$(gbinfo_from_index $gbin $inx false)
+
+
+  #return all needed variables or run single 'which'  
+  echo "${infile_path}" 
+
+}
+
+function wrap_which_prepare() {
+
+  datadir=$1
+  mapin=$2
+  mapout=$3
+  inx=$4
+
+  infile_path=$(filename_in_dir_from_index $datadir $mapin $inx false)
+  mapinfo=$(mapinfo_from_index $mapin $inx false)
+
+  #return all needed variables or run single 'which'  
+  echo "${SSTOOLS_RLIB} ${mapinfo} ${infile_path}" 
+
+}
+
+
+
+  
+
+function ids_in_mapout() {
+  mapin=$1
+  mapout=$2
+  invert=$3
+  names=$4
+  inxreturn=$5
+
+  if $inxreturn ; then
+    if $names ; then
+      if $invert ; then
+        cmd="awk 'NR==FNR{c[\$1]++;next}; {if (\$1 in c){}else{print FNR}}' $mapout $mapin"
+      else
+        cmd="awk 'NR==FNR{c[\$1]++;next}; {if (\$1 in c){print FNR}}' $mapout $mapin"
+      fi
+    else
+      if $invert ; then
+        cmd="awk 'NR==FNR && FNR>1{c[\$1]++;next}; FNR>1{if (\$1 in c){}else{print FNR-1}}' $mapout $mapin"
+      else
+        cmd="awk 'NR==FNR && FNR>1{c[\$1]++;next}; {if (\$1 in c){print FNR-1}}' $mapout $mapin"
+      fi
+    fi
+  else
+    if $names ; then
+      if $invert ; then
+        cmd="awk 'NR==FNR{c[\$1]++;next}; {if (\$1 in c){}else{print \$1}}' $mapout $mapin"
+      else
+        cmd="awk 'NR==FNR{c[\$1]++;next}; {if (\$1 in c){print \$1}}' $mapout $mapin"
+      fi
+    else
+      if $invert ; then
+        cmd="awk 'NR==FNR && FNR>1{c[\$1]++;next}; FNR>1{if (\$1 in c){}else{print \$1}}' $mapout $mapin"
+      else
+        cmd="awk 'NR==FNR && FNR>1{c[\$1]++;next}; {if (\$1 in c){print \$1}}' $mapout $mapin"
+      fi
+    fi
+  fi
+  eval $cmd
+}
+
 function grep_from_mapfile() {
   file=$1
   field=$2
@@ -30,12 +193,13 @@ function grep_from_mapfile() {
 function paths_in_map() {
   filepaths=$1
   mapout=$2
-  inverse=false
+  inverse=$3
   #run all processing in a long pipe-maneuver
   echo "$filepaths" | comma2newline | grep "$(echo "$filepaths" | comma2newline | basename_stream | newline2symbol '|' | grep_from_mapfile $mapout 1 ${inverse} false | newline2symbol '|' )"
 }
 
-function entries_in_map() {
+
+function dirpaths_in_map() {
   infile=$1
   mapout=$2
   inverse=$3

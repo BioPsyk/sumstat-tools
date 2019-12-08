@@ -18,6 +18,9 @@ source ${SSTOOLS_ROOT_ENV}/config/config-main.conf
 source ${SSTOOLS_ROOT_ENV}/config/config-user.conf
 #echo "${SSTOOLS_ROOT_ENV}"
 
+#extra functions to load
+source ${SSTOOLS_FUNCTIONS_LIBRARY}/sstools-pipe-helpers.sh
+source ${SSTOOLS_FUNCTIONS_LIBRARY}/sstools-mapfiles-helpers.sh
 
 #${SSTOOLS_ROOT_ENV}/modules/bash-modules/sstools-init-modules/sstools-gb-init.sh "$( IFS=$' '; echo "${userarr[*]}" )"
 ARGS_TO_RFUNC=($(${SSTOOLS_ROOT_ENV}/modules/bash-modules/sstools-init-modules/sstools-gb-init.sh "$( IFS=$' '; echo "${userarr[*]}" )")) 
@@ -33,12 +36,38 @@ if [ $RESULT -eq 0 ]; then
     if [ "$sstools_modifier" == "which" ]; then
       #echo "${ARGS_TO_RFUNC[@]}"
       ${SSTOOLS_RSOFT}/Rscript ${SSTOOLS_GB_WHICH_RSCRIPT} "${ARGS_TO_RFUNC[@]}" ${SSTOOLS_ROOT_ENV}
+
     elif [ "$sstools_modifier" == "which-wrap" ]; then
-      echo "${ARGS_TO_RFUNC[@]}"
-      #${SSTOOLS_RSOFT}/Rscript ${SSTOOLS_GB_LOOKUP_RSCRIPT} "${ARGS_TO_RFUNC[@]}" ${SSTOOLS_ROOT_ENV}
+     # echo "${ARGS_TO_RFUNC[@]}"
+      mapfile="${ARGS_TO_RFUNC[1]}"
+      mapfile2="${ARGS_TO_RFUNC[2]}"
+      inx="${ARGS_TO_RFUNC[3]}"
+      fname=$(eval "awk 'FNR==(${inx}+1){print \$1}' ${mapfile} ")
+      ARGS_TO_RFUNC_2=$(wrap_which_prepare "${ARGS_TO_RFUNC[@]}")
+      
+     # echo "${ARGS_TO_RFUNC_2[@]} ${SSTOOLS_ROOT_ENV}"
+      res=($(${SSTOOLS_RSOFT}/Rscript ${SSTOOLS_GB_WHICH_RSCRIPT} ${ARGS_TO_RFUNC_2[@]} ${SSTOOLS_ROOT_ENV}))
+      printf "%s\t%s\t%s\t%s\t%s\t%s\n" ${fname} ${res[0]} ${res[1]} ${res[2]} ${res[3]} ${res[4]} ${res[5]} >> ${mapfile2}
+
+    elif [ "$sstools_modifier" == "which-exists" ]; then
+      #echo "${ARGS_TO_RFUNC[@]}"
+      ids_in_mapout "${ARGS_TO_RFUNC[@]}"
+
     elif [ "$sstools_modifier" == "lookup" ]; then
       #echo "${ARGS_TO_RFUNC[@]}"
       ${SSTOOLS_RSOFT}/Rscript ${SSTOOLS_GB_LOOKUP_RSCRIPT} "${ARGS_TO_RFUNC[@]}" ${SSTOOLS_ROOT_ENV}
+    elif [ "$sstools_modifier" == "lookup-wrap" ]; then
+      #echo "${ARGS_TO_RFUNC[@]}"
+      mapfile="${ARGS_TO_RFUNC[1]}"
+      mapfile2="${ARGS_TO_RFUNC[2]}"
+      inx="${ARGS_TO_RFUNC[3]}"
+      outdir="${ARGS_TO_RFUNC[4]}"
+      logdir="${ARGS_TO_RFUNC[5]}"
+      fname=$(eval "awk 'FNR==(${inx}+1){print \$1}' ${mapfile} ")
+      ARGS_TO_RFUNC_2=$(wrap_lookup_prepare "${ARGS_TO_RFUNC[@]}")
+      #echo "${ARGS_TO_RFUNC_2[@]} ${outdir} ${SSTOOLS_ROOT_ENV} >> ${logdir}/${fname}.log"
+      ${SSTOOLS_RSOFT}/Rscript ${SSTOOLS_GB_LOOKUP_RSCRIPT} ${ARGS_TO_RFUNC_2[@]} ${outdir} ${SSTOOLS_ROOT_ENV} &> ${logdir}/${fname}.log
+
     else
       echo "no modifier" 1>&2
     fi

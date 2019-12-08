@@ -2,7 +2,7 @@
 #whatever the input make it array
 paramarray=($@)
 
-unset sstools_modifier R_library chr_field_name bp_field_name rs_field_name infile_path genome_build output_dir input_dir gbmapfile inx output_file
+unset sstools_modifier R_library chr_field_name bp_field_name rs_field_name infile_path genome_build output_dir input_dir mapfile inx output_file
 
 function general_usage(){
       echo "Usage:"
@@ -27,6 +27,11 @@ function whichwrap_usage(){
       echo "    sstools-gb which-wrap -h                      (Display this help message)"
       echo " "
 }
+function whichexists(){
+      echo "Usage:"
+      echo "    sstools-gb which-exists -h                      (Display this help message)"
+      echo " "
+}
 function lookup_usage(){
       echo "Usage:"
       echo "    sstools-gb lookup -h                      (Display this help message)"
@@ -38,12 +43,17 @@ function lookup_usage(){
       echo "    sstools-gb lookup -l LIBLOCATION"
       echo " "
 }
+function lookupwrap_usage(){
+      echo "Usage:"
+      echo "    sstools-gb lookup-wrap -h                      (Display this help message)"
+      echo " "
+}
 
 # check for and then remove first modifier from arguments list.
 case "${paramarray[0]}" in
   which)
     sstools_modifier=${paramarray[0]}
-    getoptsstring=":hc:p:r:f:l:g:"
+    getoptsstring=":hc:p:r:f:g:"
     shift # Remove `install` from the argument list
     ;;
   which-wrap)
@@ -51,9 +61,19 @@ case "${paramarray[0]}" in
     getoptsstring=":ho:d:m:i:"
     shift # Remove `install` from the argument list
     ;;
+  which-exists)
+    sstools_modifier=${paramarray[0]}
+    getoptsstring=":hm:g:ikn"
+    shift # Remove `install` from the argument list
+    ;;
   lookup)
     sstools_modifier=${paramarray[0]}
-    getoptsstring=":hc:p:r:f:l:g:o:"
+    getoptsstring=":hc:p:r:f:g:o:"
+    shift # Remove `install` from the argument list
+    ;;
+  lookup-wrap)
+    sstools_modifier=${paramarray[0]}
+    getoptsstring=":ho:d:m:g:i:l:"
     shift # Remove `install` from the argument list
     ;;
   *)
@@ -66,6 +86,7 @@ esac
 # remove modifier, 1st element
 paramarray=("${paramarray[@]:1}")
 
+
 # starting getops with :, puts the checking in silent mode for errors.
 while getopts "${getoptsstring}" opt "${paramarray[@]}"; do
   case ${opt} in
@@ -74,8 +95,12 @@ while getopts "${getoptsstring}" opt "${paramarray[@]}"; do
         which_usage 1>&2
       elif [ "$sstools_modifier" == "which-wrap" ]; then
         whichwrap_usage 1>&2
+      elif [ "$sstools_modifier" == "which-exists" ]; then
+        whichexists_usage 1>&2
       elif [ "$sstools_modifier" == "lookup" ]; then
         lookup_usage 1>&2
+      elif [ "$sstools_modifier" == "lookup-wrap" ]; then
+        lookupwrap_usage 1>&2
       fi
       exit 0
       ;;
@@ -95,8 +120,7 @@ while getopts "${getoptsstring}" opt "${paramarray[@]}"; do
       genome_build=$OPTARG
       ;;
     l )
-      #if not set, a default is already set in config file (user or main)
-      SSTOOLS_RLIB=$OPTARG
+      log=$OPTARG
       ;;
     o )
       if [ "$sstools_modifier" == "which" ]; then
@@ -105,16 +129,28 @@ while getopts "${getoptsstring}" opt "${paramarray[@]}"; do
         output_file=$OPTARG
       elif [ "$sstools_modifier" == "lookup" ]; then
         output_dir=$OPTARG
+      elif [ "$sstools_modifier" == "lookup-wrap" ]; then
+        output_dir=$OPTARG
       fi
       ;;
     d )
       input_dir=$OPTARG
       ;;
     m )
-      gbmapfile=$OPTARG
+      mapfile=$OPTARG
       ;;
     i )
+      if [ "$sstools_modifier" == "which-exists" ]; then
+        inx=true
+      else
       inx=$OPTARG
+      fi
+      ;;
+    k )
+      invert=true
+      ;;
+    n )
+      names=true
       ;;
     \? )
       echo "Invalid Option: -$OPTARG" 1>&2
@@ -147,8 +183,31 @@ if [ "$sstools_modifier" == "which" ] ; then
     exit 1
 fi
 elif [ "$sstools_modifier" == "which-wrap" ]; then
-  if [ -n "$input_dir" ] &&  [ -n "$gbmapfile" ] &&  [ -n "$output_file" ] && [ -n "$inx" ] ; then
-    toreturn="${input_dir} ${gbmapfile} ${output_file} ${inx}"
+  if [ -n "$input_dir" ] &&  [ -n "$mapfile" ] &&  [ -n "$output_file" ] && [ -n "$inx" ] ; then
+    toreturn="${input_dir} ${mapfile} ${output_file} ${inx}"
+  else
+    echo "Error: all required params have to be set, infile missing"
+    which_usage 1>&2 
+    exit 1
+  fi
+elif [ "$sstools_modifier" == "which-exists" ] ; then
+  if [ -n "$genome_build" ] &&  [ -n "$mapfile" ] ; then
+    if [ -n "$invert" ] ; then
+      :
+    else
+      invert=false
+    fi
+    if [ -n "$inx" ] ; then
+      :
+    else
+      inx=false
+    fi
+    if [ -n "$names" ] ; then
+      :
+    else
+      names=false
+    fi
+    toreturn="${mapfile} ${genome_build} ${invert} ${names} ${inx}"
   else
     echo "Error: all required params have to be set, infile missing"
     which_usage 1>&2 
@@ -170,6 +229,14 @@ elif [ "$sstools_modifier" == "lookup" ]; then
   else
     echo "Error: all required params have to be set"
     lookup_usage 1>&2
+    exit 1
+  fi
+elif [ "$sstools_modifier" == "lookup-wrap" ]; then
+  if [ -n "$input_dir" ] && [ -n "$mapfile" ] &&  [ -n "$genome_build" ] && [ -n "$output_dir" ] && [ -n "$inx" ] && [ -n "$log" ] ; then
+    toreturn="${input_dir} ${mapfile} ${genome_build} ${inx} ${output_dir} ${log}"
+  else
+    echo "Error: all required params have to be set, infile missing"
+    lookupwrap_usage 1>&2 
     exit 1
   fi
 else

@@ -2,7 +2,7 @@
 #whatever the input make it array
 paramarray=($@)
 
-unset sstools_modifier location names beautify infile specialfunction successmapping
+unset sstools_modifier location names beautify infile specialfunction successmapping indir mapfile log outdir inx 
 
 #set default outfile separator (infile is made as tab-sep)
 separator="\t"
@@ -28,9 +28,15 @@ function adhocdo_usage(){
 
 }
 # assemble
-function asseble_usage(){
+function assemble_usage(){
       echo "Usage:"
       echo "    sstools-utils assemble -h                      (Display this help message)"
+      echo " "
+
+}
+function assemblewrap_usage(){
+      echo "Usage:"
+      echo "    sstools-utils assemble-wrap -h                      (Display this help message)"
       echo " "
 
 }
@@ -71,6 +77,11 @@ case "${paramarray[0]}" in
     getoptsstring=":hn:f:g:"
     shift # Remove `install` from the argument list
     ;;
+  assemble-wrap)
+    sstools_modifier=${paramarray[0]}
+    getoptsstring=":hg:d:m:o:i:"
+    shift # Remove `install` from the argument list
+    ;;
   interactive)
     sstools_modifier=${paramarray[0]}
     getoptsstring=":hf:o:n:"
@@ -106,6 +117,8 @@ while getopts "${getoptsstring}" opt "${paramarray[@]}"; do
         adhocdo_usage 1>&2
       elif [ "$sstools_modifier" == "assemble" ]; then
         assemble_usage 1>&2
+      elif [ "$sstools_modifier" == "assemble-wrap" ]; then
+        assemblewrap_usage 1>&2
       elif [ "$sstools_modifier" == "interactive" ]; then
         interactive_usage 1>&2
       elif [ "$sstools_modifier" == "nrow" ]; then
@@ -116,7 +129,11 @@ while getopts "${getoptsstring}" opt "${paramarray[@]}"; do
       exit 0
       ;;
     l )
-      location=true
+      if [ "$sstools_modifier" == "assemble-wrap" ]; then
+        log="$OPTARG"
+      else
+        location=true
+      fi
       ;;
     s )
       separator="$OPTARG"
@@ -137,6 +154,9 @@ while getopts "${getoptsstring}" opt "${paramarray[@]}"; do
     b )
       beautify=true
       ;;
+    m )
+      mapfile="$OPTARG"
+      ;;
     g )
       successmapping="$OPTARG"
       ;;
@@ -150,13 +170,21 @@ while getopts "${getoptsstring}" opt "${paramarray[@]}"; do
       paths="$OPTARG"
       ;;
     o )
-      outfile="$OPTARG"
+      if [ "$sstools_modifier" == "assemble-wrap" ]; then
+        outdir="$OPTARG"
+      else
+        outfile="$OPTARG"
+      fi 
       ;;
     d )
       indir="$OPTARG"
       ;;
     i )
-      inverse="$OPTARG"
+      if [ "$sstools_modifier" == "assemble-wrap" ]; then
+        inx="$OPTARG"
+      else
+        inverse="$OPTARG"
+      fi
       ;;
     \? )
       echo "Invalid Option: -$OPTARG" 1>&2
@@ -212,12 +240,21 @@ elif [ "$sstools_modifier" == "ad-hoc-do" ] ; then
   fi
 elif [ "$sstools_modifier" == "assemble" ] ; then
   if [ -n "$infile" ] && [ -n "$successmapping" ] ; then
-
   cmd1="awk -v newheader='$((head -n1 ${successmapping} & gzip -dc ${infile} | head -n1) | awk -vRS='\n' -vORS='' 'NR==1{print $0"\t"}; NR==2{print $0"\n"}')' 'BEGIN{print newheader} NR==FNR{a[\$1]=\$0;next} FNR in a{print \$0, a[FNR]}' <(tail -n+2 ${successmapping}) <(gzip -dc ${infile} | tail -n+2)"
-
   else
     echo "Error: not enough params are set"
-    adhocdo_usage 1>&2 
+    assemble_usage 1>&2 
+    exit 1
+  fi
+elif [ "$sstools_modifier" == "assemble-wrap" ] ; then
+  if [ -n "$indir" ] && [ -n "$mapfile" ] &&  [ -n "$successmapping" ] && [ -n "$outdir" ] && [ -n "$inx" ] && [ -n "$log" ] ; then
+    #log file stuff not implemented yet
+    cmd1="${indir} ${mapfile} ${successmapping} ${inx} ${outdir} ${log}"
+  elif [ -n "$indir" ] && [ -n "$mapfile" ] &&  [ -n "$successmapping" ] && [ -n "$outdir" ] && [ -n "$inx" ] ; then
+    cmd1="${indir} ${mapfile} ${successmapping} ${inx} ${outdir}"
+  else
+    echo "Error: not enough params are set"
+    assemblewrap_usage 1>&2 
     exit 1
   fi
 elif [ "$sstools_modifier" == "interactive" ] ; then

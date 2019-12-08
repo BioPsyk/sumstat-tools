@@ -12,6 +12,13 @@ rs_ix=args[4]
 file=args[5]
 SSTOOLS_ROOT=args[6]
 
+#message(libdir) 
+#message(chr_ix) 
+#message(bp_ix) 
+#message(rs_ix) 
+#message(file) 
+#message(SSTOOLS_ROOT) 
+
 #libdir="/home/projects/cu_10009/general/R-libraries/R_3.6.1_Bioc_3.10_library"
 #
 ##simple case
@@ -123,7 +130,7 @@ if (chr_tf & bp_tf | rs_tf){
     #text3 <- paste("zcat ", file, " | head -n3000 | gawk -f ", AWK_SELECT_BY_COLNAME, " -v mapcols=\"",rs_ix,"\" -v newcols=\"rs\" | tail -n+2", sep="")
   }
 }else{
-  cat("---","\t","---","\t","---","\t","---","\t","---", sep="")
+  cat("mapinfo-not-in-header","\t","---","\t","---","\t","---","\t","---", sep="")
 }
 
 
