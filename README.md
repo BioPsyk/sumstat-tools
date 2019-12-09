@@ -1,11 +1,13 @@
 # sumstat-tools
 
+A toolbox of modularized software with the purpose of assisting a pipeline to control the quality of files with GWAS summary statistics.
+
 ## Table of Contents
-* [sumstat-tools-intro](#sumstat-tools-intro)
+* [sumstat-tools](#sumstat-tools)
 * [download-and-install](#download-and-install)
-* [structure-of-tools](#structure-of-tools)
 * [user-config](#user-config)
-* [sstools-gb](#sstools-gb)
+* [structure-of-tools](#structure-of-tools)
+
 
 ## <a name="sumstat-tools-intro"></a>sumstat-tools-intro
 Tools for curating and filtering sumstats
@@ -35,23 +37,175 @@ sstools-version
 ```
 NOTE: After the path has been set, the cloned directory cannot be moved without running ./install again from the new path
 
+## <a name="user-config"></a>user-config
+sumstat-tools has all configuration files in the ```config``` directory.
+
 ## <a name="The-sumstat-tools-software-suit"></a>The-sumstat-tools-software-suit
 For the purpose of modularity the suit contains the set of relatively independent softwares listed below:
 
-* sstools-raw
-* sstools-gb
-* sstools-stats
-* sstools-asmbl
+* [sstools-raw](#sstools-raw)
+* [sstools-gb](#sstools-gb)
+* [sstools-stats](#sstools-stats)
+* [sstools-utils](#sstools-utils)
 
-Each of these have in turn a modifier to perform a specific operation, for example:
+Each of these have in turn a modifier with a set of parameter flags to perform a specific operation, for example:
 
-* sstools-gb which
-* sstools-gb lookup
+* sstools-gb which -c -p -f
+* sstools-gb lookup -c -p -f -g -o
 
-## <a name="user-config"></a>user-config
-sumstat-tools has all configuration files in the the ```config``` directory.
+## <a name="sstools-gb"></a>sstools-raw
 
+A crude initial qauality control (QC) of GWAS sumstat data file format to be able to automatize the workflow in following steps.
 
+Downloaded data from GWAS sumstat repositories is not always coming in the same
+ format. A first requirement for the BioPsyk pipeline is that all files are:
+- gzipped
+- each field is separated by tab
+- each row has same number of fields
+
+For the majority of files this is already the case, but for those that are not, we
+ here give examples of how to:
+- test the conditons above
+- correct files that break the conditions
+
+Using example data coming with the project we have designed this example to be
+runnnable just by starting from the projects root folder, **therefore place yourself in the project root folder**, and set the paths to the following (but when outside of this tutorial use absolute paths):
+
+#### In- and output directory
+
+```shell
+#Specify path to input data (exists in the data folder of root of sumstat-tools)
+DATA_DIR="data/gwas-summary-stats"
+
+#Specify path to outfolder
+OUT_DIR1="out/raw_format_ok"
+
+# Make outfolder if it does not already exist
+mkdir -p ${OUT_DIR1}
+```
+
+One requirement for a file to work with sstools is to be gzipped. If there are any file which are not gzipped yet, you can make them by the gzip -c command. Here is an example of how to gunzip and gzip a file.
+
+```shell
+#unzip to get unzipped example
+gunzip ${DATA_DIR}/AD_sumstats_Jansenetal.txt.gz
+
+#gzip again to show how it is done
+gzip -c ${DATA_DIR}/AD_sumstats_Jansenetal.txt > ${DATA_DIR}/AD_sumstats_Jansenetal.txt.gz
+
+#remove unzipped file
+rm ${DATA_DIR}/AD_sumstats_Jansenetal.txt
+
+```
+Check that the file is gzipped correctly
+
+```shell
+file="${DATA_DIR}/AD_sumstats_Jansenetal.txt.gz"
+gzip -v -t ${file}
+```
+
+Check that the all files in directory are gzipped correctly
+
+```shell
+for file in ${DATA_DIR}/*;
+do
+  gzip -v -t ${file}
+done
+```
+
+Seems like all files here are ok. In case a file is marked as badly gzipped, then try to use the original file and re-zip it again. Or download the sumstat file again.
+
+#### Test if all rows have same number of tab separated fields
+
+```shell
+# Only checks for tab as separator
+CHECK_NUM_FIELDS_WRAPPER="${PM}/bash-modules/check-number-of-fields-wrapper.sh"
+sh ${CHECK_NUM_FIELDS_WRAPPER} ${SSD}
+```
+
+Seems like this Jansenetal file is troublesome. Let us count the field numbers for the top of the file to see if we can spot something obvious
+
+```shell
+#store bad file in variable
+badfile1="AD_sumstats_Jansenetal.txt.gz"
+
+#Let awk decide on separator
+zcat ${SSD}/$badfile1 | head | awk '{print NF}'
+
+#Force tab separation
+zcat ${SSD}/$badfile1 | head | awk 'BEGIN {FS="\t"}; {print NF }'
+
+```
+
+Check header and make a manual correction
+
+```shell
+#Let us therefore manually correct the headers using these commands
+#(we will sacrifce some decompress and compress time for compatibility in respect to block size)
+AWK_CHANGE_HEADER="${PM}/awk-modules/change-header-to-passed-argument.awk"
+zcat ${SSD}/$badfile1 | head -n1
+
+#write the colnames and separate them with , and then awk script will transform
+#it to tab separated names and replace the header
+newHeader="uniqID.a1a2,CHR,BP,A1,A2,SNP,Z,P,Nsum,Neff,dir,MAF,BETA,SE"
+
+#inspect the change
+zcat ${SSD}/$badfile1| head | awk -f ${AWK_CHANGE_HEADER} -v newHeader=${newHeader} | awk 'BEGIN {FS="\t"}; {print NF }'
+
+#unzip, include and gzip the change, and save the zip file to the folder with corrected data
+zcat ${SSD}/$badfile1 | awk -f ${AWK_CHANGE_HEADER} -v newHeader=${newHeader} | gzip -c > ${SSD_CF}/${badfile1}
+```
+
+Check if there are any headers that is treated like only one field
+```shell
+for file in ${SSD}/*; do
+  zcat ${file} | head -n1 | awk -v fil="${file}" 'BEGIN{FS="\t"}; {print NF, fil} '
+done
+```
+
+seems like one file only has 1 field that is probably wrong, let us a try to correct it
+
+```shell
+#which file is bad
+badfile2="TrynkaG_2011_22057235.txt.gz"
+zcat ${SSD}/${badfile2} | head | awk 'BEGIN {FS="\t"}; {print NF }'
+
+#analyze the separator composition
+zcat ${SSD}/${badfile2} | head |
+awk 'BEGIN{FS="\t"; OFS="=TAB="}; {for(k=1; k <= NF; k++){printf "%s%s", $(k), OFS } print ""}' |
+awk 'BEGIN{FS="[[:space:]]"; OFS="_"}; {for(k=1; k <= NF; k++){printf "%s%s", $(k), OFS } print ""}'
+
+#first remove tabs replace with nothing, and then field separate on only whitespace (as well as skip the first column in the second iteration)
+zcat ${SSD}/${badfile2} |
+awk 'BEGIN{FS="\t"; OFS=""}; {for(k=1; k <= NF; k++){printf "%s%s", $(k), OFS } print ""}' |
+awk 'BEGIN{FS="[[:space:]]+"; OFS="\t"}; {for(k=2; k <= NF; k++){printf "%s%s", $(k), OFS } print ""}' | gzip -c > ${SSD_CF}/${badfile2}.tmp
+
+#check all is ok, and if so then rename file (getting rid of .tmp)
+zcat ${SSD_CF}/$badfile2.tmp | head | awk '{print NF}'
+mv ${SSD_CF}/${badfile2}.tmp ${SSD_CF}/${badfile2}
+```
+
+#### Prepare the remaining files for the next step
+
+If the file looks alright we can link over the remaining files from the raw sumstat directory SSD.
+
+```shell
+#link over all files that were not modified (i.e., not bad files)
+#for file in ${SSD}/*; do
+#  file2=${file##*/}
+#  echo "link ${file} ---and--- ${file2}"
+#  ln -s ${file} ${SSD_CF}/${file2}
+#done
+
+#or copy, depending on available space (or if your virtual machine does not allow symlinks)
+for file in ${SSD}/*; do
+  file2=${file##*/}
+  echo "copying ${file} ---to--- ${SSD_CF}/${file2}"
+  cp -n ${file} ${SSD_CF}/${file2} || TRUE
+done
+```
+
+From here we have correctly formatted files and are therefore prepared to use more automatic functionality in following steps.
 
 ## <a name="sstools-gb"></a>sstools-gb
 
@@ -248,7 +402,6 @@ echo "file $j done ..."; \
 ) & \
 done; wait
 
-
 ```
 
 Similarly to which-exists, if there is already a map out-file for genome builds, we should not have to run all files again. Here is how to get the indices for files missing new location output.
@@ -274,10 +427,66 @@ mapdir="${OUT_DIR2}/successfull_mappings/GRCh37"
 qcddir="${OUT_DIR2}/location_qcd_GRCh37"
 mkdir -p "${qcddir}"
 
+# Select files to run
+inx=(1 2 3)
+
 # This step takes much less time and does not need parallization
-for (( j=0; j<${nrows}; j++ )); do
+for j in "${inx[@]}"; do \
 sstools-utils assemble-wrap -d ${DATA_DIR} -m ${MAPFILE_GWAS} -g $mapdir -o $qcddir -i ${j}
 done
+
 ```
 
 Now the tutorial for sstools-gb has come to an end.
+
+## <a name="sstools-stats"></a>sstools-stats
+
+Check statistics and create different formats from what is available.
+
+In GWAS sumstat files we can have different types of test statistics, which can make it problematic to compare them to each other. Fortunately it is possible to calculate or infer missing statistics. The different statistics present are the following:
+
+- Zscore
+- Beta
+- Odds Ratio
+- P-value
+- Standard error
+
+To make things worse, we sometimes have values in log form, and sometimes not. The most problematic part is however that the naming of each of these statistics is very variable, so a lot of manual work of mapping of where each statistic is located in each file.
+
+Therefore again we will have to create a mapfile, which will call awk scripts to perform the calculations we need. A benefit with using awk is that it is very fast, and in this pipeline we won't have to create any intermediate files for this maneuvor, but instead use this mapfile for the final assembly in step 4. Of course we will also show some custom examples of how we can call the functionality.
+
+Using example data coming with the project we have designed this example to be runnnable just by starting from the projects root folder, therefore place yourself in the project root folder, and set the paths to the following (preferably the absolute paths):
+
+```shell
+#Specify path to this pipelines modules
+PM="modules"
+
+#Specify path to working directory
+WD="test/testdata/testresults"
+
+#Specify path to Step1 summary statistics files
+SSD1="tests/testdata/01_format_corrected_sumstats"
+
+#Specify path to folder for all transformed files
+SSD_AGI="tests/testdata/02_genomic_information_to_add"
+#make folder if it does not already exist
+mkdir ${SSD_AGI}
+
+```
+
+#### One file map
+The larger plan is to create a map file including all sumstat files, but for the purpose of this example, we will first show the workflow for only one file.
+
+```shell
+#select file we are about to add genomic informaiton to
+selfile="AD_sumstats_Jansenetal.txt.gz"
+
+#look at the header to see available field names
+zcat ${SSD1}/$selfile | head -n3
+
+```
+
+
+## <a name="sstools-utils"></a>sstools-utils
+
+There are many shared functionalities within this software suit, which we have tried to collect in the sstools-utils toolkit. All examples of usage is described within the other sections. 
