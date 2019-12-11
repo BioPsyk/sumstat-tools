@@ -31,7 +31,7 @@ source ${HOME}/.bashrc
 # Step 5: Verify that sstools starts
 sstools-version
 
-# Step 6: Check the R installation and has all required packages
+# Step 6: Check the R installation and all required packages
 # To be done
 
 ```
@@ -78,11 +78,13 @@ runnnable just by starting from the projects root folder, **therefore place your
 DATA_DIR="data/gwas-summary-stats"
 
 #Specify path to outfolder
-OUT_DIR1="out/raw_format_ok"
+OUT_DIR0="out/raw_format_ok"
 
 # Make outfolder if it does not already exist
-mkdir -p ${OUT_DIR1}
+mkdir -p ${OUT_DIR0}
 ```
+
+#### Test if files are gzipped correctly
 
 One requirement for a file to work with sstools is to be gzipped. If there are any file which are not gzipped yet, you can make them by the gzip -c command. Here is an example of how to gunzip and gzip a file.
 
@@ -119,8 +121,7 @@ Seems like all files here are ok. In case a file is marked as badly gzipped, the
 
 ```shell
 # Only checks for tab as separator
-CHECK_NUM_FIELDS_WRAPPER="${PM}/bash-modules/check-number-of-fields-wrapper.sh"
-sh ${CHECK_NUM_FIELDS_WRAPPER} ${SSD}
+sstools-raw tab-sep -d ${DATA_DIR}
 ```
 
 Seems like this Jansenetal file is troublesome. Let us count the field numbers for the top of the file to see if we can spot something obvious
@@ -129,36 +130,27 @@ Seems like this Jansenetal file is troublesome. Let us count the field numbers f
 #store bad file in variable
 badfile1="AD_sumstats_Jansenetal.txt.gz"
 
-#Let awk decide on separator
-zcat ${SSD}/$badfile1 | head | awk '{print NF}'
-
-#Force tab separation
-zcat ${SSD}/$badfile1 | head | awk 'BEGIN {FS="\t"}; {print NF }'
+#check number of fields when tab separation
+zcat ${DATA_DIR}/$badfile1 | head | awk 'BEGIN {FS="\t"}; {print NF }'
 
 ```
-
-Check header and make a manual correction
+In the output above we can see that the header has only 13 fields compared to the 14 fields in the following rows. One common problem for the tab format is if the header has been added to the sumstat file after it was generated. This can cause a discrepancy between number of detected fields for the header and the following rows. Here will perform a check of the header and make a manual correction if it is problematic.
 
 ```shell
-#Let us therefore manually correct the headers using these commands
-#(we will sacrifce some decompress and compress time for compatibility in respect to block size)
-AWK_CHANGE_HEADER="${PM}/awk-modules/change-header-to-passed-argument.awk"
-zcat ${SSD}/$badfile1 | head -n1
+# How does the header look like now
+zcat ${DATA_DIR}/$badfile1 | head -n1
 
-#write the colnames and separate them with , and then awk script will transform
-#it to tab separated names and replace the header
+# try write new colnames and separate them with comma (,) and see if we get the number of fields to 14
 newHeader="uniqID.a1a2,CHR,BP,A1,A2,SNP,Z,P,Nsum,Neff,dir,MAF,BETA,SE"
+zcat ${DATA_DIR}/$badfile1 | sstools-raw new-header -c ${newHeader} | head | awk 'BEGIN {FS="\t"}; {print NF }'
 
-#inspect the change
-zcat ${SSD}/$badfile1| head | awk -f ${AWK_CHANGE_HEADER} -v newHeader=${newHeader} | awk 'BEGIN {FS="\t"}; {print NF }'
-
-#unzip, include and gzip the change, and save the zip file to the folder with corrected data
-zcat ${SSD}/$badfile1 | awk -f ${AWK_CHANGE_HEADER} -v newHeader=${newHeader} | gzip -c > ${SSD_CF}/${badfile1}
+# Unzip, include and gzip the change, and save the zip file to the folder with corrected data
+zcat ${DATA_DIR}/$badfile1 | sstools-raw new-header -c ${newHeader} | gzip -c > ${OUT_DIR0}/${badfile1}
 ```
 
 Check if there are any headers that is treated like only one field
 ```shell
-for file in ${SSD}/*; do
+for file in ${DATA_DIR}/*; do
   zcat ${file} | head -n1 | awk -v fil="${file}" 'BEGIN{FS="\t"}; {print NF, fil} '
 done
 ```
@@ -166,7 +158,7 @@ done
 seems like one file only has 1 field that is probably wrong, let us a try to correct it
 
 ```shell
-#which file is bad
+# Which file is bad
 badfile2="TrynkaG_2011_22057235.txt.gz"
 zcat ${SSD}/${badfile2} | head | awk 'BEGIN {FS="\t"}; {print NF }'
 
@@ -489,4 +481,4 @@ zcat ${SSD1}/$selfile | head -n3
 
 ## <a name="sstools-utils"></a>sstools-utils
 
-There are many shared functionalities within this software suit, which we have tried to collect in the sstools-utils toolkit. All examples of usage is described within the other sections. 
+There are many shared functionalities within this software suit, which we have tried to collect in the sstools-utils toolkit. All examples of usage is described within the other sections.
