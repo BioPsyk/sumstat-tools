@@ -10,8 +10,9 @@ bp_ix=args[3]
 rs_ix=args[4]
 file=args[5]
 gb=args[6]
-outDir=args[7]
-SSTOOLS_ROOT=args[8]
+alleles=args[7]
+outDir=args[8]
+SSTOOLS_ROOT=args[9]
 
 #Arguments retrieved
 message(paste("-------------------------------------",sep=""))

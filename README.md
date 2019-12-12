@@ -155,22 +155,19 @@ for file in ${DATA_DIR}/*; do
 done
 ```
 
-seems like one file only has 1 field that is probably wrong, let us a try to correct it
+seems like one file only has 1 field. That is probably wrong, let us a try to correct it.
 
 ```shell
 # Which file is bad
 badfile2="TrynkaG_2011_22057235.txt.gz"
-zcat ${SSD}/${badfile2} | head | awk 'BEGIN {FS="\t"}; {print NF }'
+zcat ${DATA_DIR}/${badfile2} | head | awk 'BEGIN {FS="\t"}; {print NF }'
 
 #analyze the separator composition
-zcat ${SSD}/${badfile2} | head |
-awk 'BEGIN{FS="\t"; OFS="=TAB="}; {for(k=1; k <= NF; k++){printf "%s%s", $(k), OFS } print ""}' |
-awk 'BEGIN{FS="[[:space:]]"; OFS="_"}; {for(k=1; k <= NF; k++){printf "%s%s", $(k), OFS } print ""}'
+zcat ${DATA_DIR}/${badfile2} | head | sstools-raw what-sep
 
 #first remove tabs replace with nothing, and then field separate on only whitespace (as well as skip the first column in the second iteration)
-zcat ${SSD}/${badfile2} |
-awk 'BEGIN{FS="\t"; OFS=""}; {for(k=1; k <= NF; k++){printf "%s%s", $(k), OFS } print ""}' |
-awk 'BEGIN{FS="[[:space:]]+"; OFS="\t"}; {for(k=2; k <= NF; k++){printf "%s%s", $(k), OFS } print ""}' | gzip -c > ${SSD_CF}/${badfile2}.tmp
+zcat ${DATA_DIR}/${badfile2} | sstools-raw new-sep -t "cola" -w "\t" | head
+ | gzip -c > ${SSD_CF}/${badfile2}.tmp
 
 #check all is ok, and if so then rename file (getting rid of .tmp)
 zcat ${SSD_CF}/$badfile2.tmp | head | awk '{print NF}'

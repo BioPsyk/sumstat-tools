@@ -54,19 +54,21 @@ if [ $RESULT -eq 0 ]; then
       ids_in_mapout "${ARGS_TO_RFUNC[@]}"
 
     elif [ "$sstools_modifier" == "lookup" ]; then
-      #echo "${ARGS_TO_RFUNC[@]}"
-      ${SSTOOLS_RSOFT}/Rscript ${SSTOOLS_GB_LOOKUP_RSCRIPT} "${ARGS_TO_RFUNC[@]}" ${SSTOOLS_ROOT_ENV}
+      echo "${ARGS_TO_RFUNC[@]}"
+      #${SSTOOLS_RSOFT}/Rscript ${SSTOOLS_GB_LOOKUP_RSCRIPT} "${ARGS_TO_RFUNC[@]}" ${SSTOOLS_ROOT_ENV}
     elif [ "$sstools_modifier" == "lookup-wrap" ]; then
       #echo "${ARGS_TO_RFUNC[@]}"
+      datadir="${ARGS_TO_RFUNC[1]}"
       mapfile="${ARGS_TO_RFUNC[1]}"
       mapfile2="${ARGS_TO_RFUNC[2]}"
-      inx="${ARGS_TO_RFUNC[3]}"
-      outdir="${ARGS_TO_RFUNC[4]}"
-      logdir="${ARGS_TO_RFUNC[5]}"
+      allele="${ARGS_TO_RFUNC[3]}"
+      inx="${ARGS_TO_RFUNC[4]}"
+      outdir="${ARGS_TO_RFUNC[5]}"
+      logdir="${ARGS_TO_RFUNC[6]}"
       fname=$(eval "awk 'FNR==(${inx}+1){print \$1}' ${mapfile} ")
-      ARGS_TO_RFUNC_2=$(wrap_lookup_prepare "${ARGS_TO_RFUNC[@]}")
-      #echo "${ARGS_TO_RFUNC_2[@]} ${outdir} ${SSTOOLS_ROOT_ENV} >> ${logdir}/${fname}.log"
-      ${SSTOOLS_RSOFT}/Rscript ${SSTOOLS_GB_LOOKUP_RSCRIPT} ${ARGS_TO_RFUNC_2[@]} ${outdir} ${SSTOOLS_ROOT_ENV} &> ${logdir}/${fname}.log
+      ARGS_TO_RFUNC_2=$(wrap_lookup_prepare "${datadir}" "${mapfile}" "${mapfile2}" "${inx}")
+      echo "${ARGS_TO_RFUNC_2[@]} ${outdir} ${SSTOOLS_ROOT_ENV} >> ${logdir}/${fname}.log"
+      #${SSTOOLS_RSOFT}/Rscript ${SSTOOLS_GB_LOOKUP_RSCRIPT} ${ARGS_TO_RFUNC_2[@]} ${outdir} ${SSTOOLS_ROOT_ENV} &> ${logdir}/${fname}.log
 
     else
       echo "no modifier" 1>&2

@@ -68,12 +68,12 @@ case "${paramarray[0]}" in
     ;;
   lookup)
     sstools_modifier=${paramarray[0]}
-    getoptsstring=":hc:p:r:f:g:o:"
+    getoptsstring=":hc:p:r:f:g:o:a"
     shift # Remove `install` from the argument list
     ;;
   lookup-wrap)
     sstools_modifier=${paramarray[0]}
-    getoptsstring=":ho:d:m:g:i:l:"
+    getoptsstring=":ho:d:m:g:i:l:a"
     shift # Remove `install` from the argument list
     ;;
   *)
@@ -86,7 +86,7 @@ esac
 # remove modifier, 1st element
 paramarray=("${paramarray[@]:1}")
 
-
+allele=false
 # starting getops with :, puts the checking in silent mode for errors.
 while getopts "${getoptsstring}" opt "${paramarray[@]}"; do
   case ${opt} in
@@ -118,6 +118,9 @@ while getopts "${getoptsstring}" opt "${paramarray[@]}"; do
       ;;
     g )
       genome_build=$OPTARG
+      ;;
+    a )
+      allele=true
       ;;
     l )
       log=$OPTARG
@@ -216,11 +219,11 @@ elif [ "$sstools_modifier" == "which-exists" ] ; then
 elif [ "$sstools_modifier" == "lookup" ]; then
   if [ -n "$infile_path" ] && [ -n "$genome_build" ] && [ -n "$output_dir" ] ; then
     if [ -n "$chr_field_name" ] && [ -n "$bp_field_name" ] && [ -n "$rs_field_name" ] ; then
-      toreturn="${SSTOOLS_RLIB} ${chr_field_name} ${bp_field_name} $rs_field_name ${infile_path} ${genome_build} ${output_dir}"
+      toreturn="${SSTOOLS_RLIB} ${chr_field_name} ${bp_field_name} $rs_field_name ${infile_path} ${genome_build} ${allele} ${output_dir}"
     elif [ -n "$chr_field_name" ] && [ -n "$bp_field_name" ] ; then
-      toreturn="${SSTOOLS_RLIB} ${chr_field_name} ${bp_field_name} --- ${infile_path} ${genome_build} ${output_dir}"
+      toreturn="${SSTOOLS_RLIB} ${chr_field_name} ${bp_field_name} --- ${infile_path} ${genome_build} ${allele} ${output_dir}"
     elif [ -n "$rs_field_name" ] ; then
-      toreturn="${SSTOOLS_RLIB} --- --- ${rs_field_name} ${infile_path} ${genome_build} ${output_dir}"
+      toreturn="${SSTOOLS_RLIB} --- --- ${rs_field_name} ${infile_path} ${genome_build} ${allele} ${output_dir}"
     else
       echo "Error: all required params have to be set"
       lookup_usage 1>&2
@@ -233,7 +236,7 @@ elif [ "$sstools_modifier" == "lookup" ]; then
   fi
 elif [ "$sstools_modifier" == "lookup-wrap" ]; then
   if [ -n "$input_dir" ] && [ -n "$mapfile" ] &&  [ -n "$genome_build" ] && [ -n "$output_dir" ] && [ -n "$inx" ] && [ -n "$log" ] ; then
-    toreturn="${input_dir} ${mapfile} ${genome_build} ${inx} ${output_dir} ${log}"
+    toreturn="${input_dir} ${mapfile} ${genome_build} ${allele} ${inx} ${output_dir} ${log}"
   else
     echo "Error: all required params have to be set, infile missing"
     lookupwrap_usage 1>&2 
