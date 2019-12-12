@@ -37,47 +37,49 @@ done < <(printf '%s%s' "$string" "$sep")
 #echo "$( IFS=$' '; echo "${userarr[*]}" )" 
 #${SSTOOLS_ROOT_ENV}/modules/bash-modules/sstools-init-modules/sstools-gb-init.sh "$( IFS=$' '; echo "${userarr[*]}" )"
 IFS='¬' read -r -a ARGS_TO_FUNC <<< $(${SSTOOLS_ROOT_ENV}/modules/bash-modules/sstools-init-modules/sstools-raw-init.sh "$@") 
-echo "${ARGS_TO_FUNC[@]}"
+#echo "${ARGS_TO_FUNC[@]}"
 #ARGS_TO_FUNC=($(${SSTOOLS_ROOT_ENV}/modules/bash-modules/sstools-init-modules/sstools-raw-init.sh "$( IFS=$' '; echo "${userarr[*]}" )")) 
 #echo "$@"
 #ARGS_TO_FUNC=($(${SSTOOLS_ROOT_ENV}/modules/bash-modules/sstools-init-modules/sstools-raw-init.sh $@)) 
 #echo "${ARGS_TO_FUNC[@]}"
-#RESULT=$?
-##If the above (most recent command) was successful, then 
-#if [ $RESULT -eq 0 ]; then
-#  #echo "parsing complete" 1>&2
-#  #run script based on modifier
-#  if [ "$ARGS_TO_FUNC" == "" ]; then
-#    echo "parsing complete script no output" 1>&2
-#    exit 1
-#  else
-#    if [ "$sstools_modifier" == "tab-sep" ]; then
-#      #echo "${ARGS_TO_FUNC[@]}"
-#      CHECK_NUM_FIELDS_WRAPPER="${SSTOOLS_ROOT_ENV}/modules/bash-modules/check-number-of-fields-wrapper.sh"
-#      sh ${CHECK_NUM_FIELDS_WRAPPER} "${ARGS_TO_FUNC[@]}"
-#    elif [ "$sstools_modifier" == "new-header" ]; then
-#      #echo "${ARGS_TO_FUNC[@]}"
-#      AWK_CHANGE_HEADER="${SSTOOLS_ROOT_ENV}/modules/awk-modules/change-header-to-passed-argument.awk"
-#      cmd="awk -f ${AWK_CHANGE_HEADER} -v newHeader='${ARGS_TO_FUNC[1]}'"
-#      readoption "${ARGS_TO_FUNC[0]}" | eval "${cmd}"
-#    elif [ "$sstools_modifier" == "what-sep" ]; then
-#      #echo "${ARGS_TO_FUNC[@]}"
-#      AWK_CHANGE_SEPARATOR="${SSTOOLS_ROOT_ENV}/modules/awk-modules/change-separator.awk"
-#      cmd1="awk -f ${AWK_CHANGE_SEPARATOR} -vFS='\t' -vOFS='${ARGS_TO_FUNC[1]}' "
-#      cmd2="awk -f ${AWK_CHANGE_SEPARATOR} -vFS='[[:space:]]' -vOFS='${ARGS_TO_FUNC[2]}' "
-#      readoption "${ARGS_TO_FUNC[0]}" | eval "${cmd1}" | eval "${cmd2}"
-#    elif [ "$sstools_modifier" == "new-sep" ]; then
-#      echo "${ARGS_TO_FUNC[@]}"
-#      #AWK_CHANGE_SEPARATOR="${SSTOOLS_ROOT_ENV}/modules/awk-modules/change-separator.awk"
-#      #cmd1="awk -f ${AWK_CHANGE_SEPARATOR} -vFS='\t' -vOFS='${ARGS_TO_FUNC[1]}' "
-#      #cmd2="awk -f ${AWK_CHANGE_SEPARATOR} -vFS='[[:space:]]' -vOFS='${ARGS_TO_FUNC[2]}' "
-#      #readoption "${ARGS_TO_FUNC[0]}" | eval "${cmd1}" | eval "${cmd2}"
-#    else
-#      echo "no modifier" 1>&2
-#    fi
-#  fi
-#else
-#  echo "parsing failed" 1>&2
-#  exit 1
-#fi
-#
+RESULT=$?
+#If the above (most recent command) was successful, then 
+if [ $RESULT -eq 0 ]; then
+  #echo "parsing complete" 1>&2
+  #run script based on modifier
+  if [ "$ARGS_TO_FUNC" == "" ]; then
+    echo "parsing complete script no output" 1>&2
+    exit 1
+  else
+    if [ "$sstools_modifier" == "tab-sep" ]; then
+      #echo "${ARGS_TO_FUNC[@]}"
+      CHECK_NUM_FIELDS_WRAPPER="${SSTOOLS_ROOT_ENV}/modules/bash-modules/check-number-of-fields-wrapper.sh"
+      sh ${CHECK_NUM_FIELDS_WRAPPER} "${ARGS_TO_FUNC[@]}"
+    elif [ "$sstools_modifier" == "new-header" ]; then
+      #echo "${ARGS_TO_FUNC[@]}"
+      AWK_CHANGE_HEADER="${SSTOOLS_ROOT_ENV}/modules/awk-modules/change-header-to-passed-argument.awk"
+      cmd="awk -f ${AWK_CHANGE_HEADER} -v newHeader='${ARGS_TO_FUNC[1]}'"
+      readoption "${ARGS_TO_FUNC[0]}" | eval "${cmd}"
+    elif [ "$sstools_modifier" == "what-sep" ]; then
+      echo "${ARGS_TO_FUNC[@]}"
+      AWK_CHANGE_SEPARATOR="${SSTOOLS_ROOT_ENV}/modules/awk-modules/change-separator.awk"
+      cmd1="awk -f ${AWK_CHANGE_SEPARATOR} -vFS='\t' -vOFS='${ARGS_TO_FUNC[1]}' "
+      cmd2="awk -f ${AWK_CHANGE_SEPARATOR} -vFS='[[:space:]]' -vOFS='${ARGS_TO_FUNC[2]}' "
+      echo ${cmd1}
+      echo "----"
+      readoption "${ARGS_TO_FUNC[0]}" | eval "${cmd1}" | eval "${cmd2}"
+    elif [ "$sstools_modifier" == "new-sep" ]; then
+      #echo "${ARGS_TO_FUNC[@]}"
+      AWK_CHANGE_SEPARATOR="${SSTOOLS_ROOT_ENV}/modules/awk-modules/change-separator.awk"
+      cmd1="awk -f ${AWK_CHANGE_SEPARATOR} -vFS='\t' -vOFS='${ARGS_TO_FUNC[1]}' "
+      cmd2="awk -f ${AWK_CHANGE_SEPARATOR} -vFS='[[:space:]]' -vOFS='${ARGS_TO_FUNC[2]}' "
+      readoption "${ARGS_TO_FUNC[0]}" | eval "${cmd1}" | eval "${cmd2}"
+    else
+      echo "no modifier" 1>&2
+    fi
+  fi
+else
+  echo "parsing failed" 1>&2
+  exit 1
+fi
+

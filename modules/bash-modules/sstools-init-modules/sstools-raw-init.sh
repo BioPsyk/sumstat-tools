@@ -1,10 +1,10 @@
-echo "$@" 1>&2
-echo "$0" 1>&2
-echo "$1" 1>&2
-echo "$2" 1>&2
-echo "|$3||" 1>&2
-echo "$4" 1>&2
-echo "----" 1>&2
+#echo "$@" 1>&2
+#echo "$0" 1>&2
+#echo "$1" 1>&2
+#echo "$2" 1>&2
+#echo "|$3||" 1>&2
+#echo "$4" 1>&2
+#echo "----" 1>&2
 
 
 unset sstools_modifier infile_path output_dir input_dir output_file tabsep whitespace
@@ -50,7 +50,7 @@ case "${1}" in
     ;;
   what-sep)
     sstools_modifier=${1}
-    getoptsstring=":hf:t:w:"
+    getoptsstring=":hf:"
     shift 
     ;;
   new-sep)
@@ -137,16 +137,8 @@ elif [ "$sstools_modifier" == "what-sep" ] ; then
   else 
     infile_path="-"
   fi
-  if [ -n "$tabsep" ] ; then
-  :
-  else 
-    tabsep="=TAB="
-  fi
-  if [ -n "$whitespace" ] ; then
-  :
-  else 
-    whitespace="_"
-  fi
+  tabsep="=TAB="
+  whitespace="_"
   if [ -n "$infile_path" ] && [ -n "$tabsep" ] && [ -n "$whitespace" ]; then
     printf "%s¬%s¬%s\n" "${infile_path} ${tabsep} ${whitespace}"  
   else
@@ -161,9 +153,8 @@ elif [ "$sstools_modifier" == "new-sep" ] ; then
     infile_path="-"
   fi
   tabsep=""
-  if [[ -n "$tabsep" || [ -z "$tabsep" ]] ; then
+  if [[ -n "${tabsep}" || -z "${tabsep}" ]] ; then
   :
-  echo $tabsep
   else 
     tabsep=""
   fi
@@ -172,8 +163,8 @@ elif [ "$sstools_modifier" == "new-sep" ] ; then
   else 
     whitespace=""
   fi
-  if [ -n "$infile_path" ] && [ -n "$tabsep" ] && [ -n "$whitespace" ]; then
-    printf "%s¬%s¬%s\n" "${infile_path}" "${tabsep}" "${whitespace}"  1>&2
+  if [ -n "$infile_path" ] && [[ -n "${tabsep}" || -z "${tabsep}" ]] && [[ -n "${whitespace}" || -z "${whitespace}" ]]; then
+    #printf "%s¬%s¬%s\n" "${infile_path}" "${tabsep}" "${whitespace}"  1>&2
     printf "%s¬%s¬%s\n" "${infile_path}" "${tabsep}" "${whitespace}"
   else
     echo "Error: all required params have to be set"
