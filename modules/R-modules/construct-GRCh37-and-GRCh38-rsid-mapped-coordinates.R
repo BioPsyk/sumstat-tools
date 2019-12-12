@@ -11,6 +11,7 @@ rs_ix=args[4]
 file=args[5]
 gb=args[6]
 alleles=args[7]
+dbsnpvcf=args[8]
 outDir=args[8]
 SSTOOLS_ROOT=args[9]
 
@@ -24,10 +25,25 @@ message(paste(bp_ix,sep=""))
 message(paste(rs_ix,sep=""))
 message(paste(file,sep=""))
 message(paste(gb,sep=""))
+message(paste(alleles,sep=""))
+message(paste(dbsnpvcf,sep=""))
 message(paste(outDir,sep=""))
 message(paste("-------------------------------------",sep=""))
 message(paste(" Starting script",sep=""))
 message(paste("-------------------------------------",sep=""))
+
+################################################################################
+# argument check
+################################################################################
+
+#check for allele true
+if(alleles=="true"){
+  alleles <- TRUE
+}else if(alleles=="false"){
+  alleles <- FALSE 
+}else{
+  stop("allele:", alleles, "is not valid input")
+}
 
 ################################################################################
 # support functions
@@ -209,6 +225,7 @@ coerceToGRCh38andGRCh37 <- function(libdir,chr_ix,bp_ix,rs_ix,file,gb,outDir, ve
     snps <- SNPlocs.Hsapiens.dbSNP151.GRCh38
     suppressMessages(library(liftOver))
     suppressMessages(library(data.table))
+    if(alleles) suppressMessages(library(VariantAnnotation))
   
     if (chr_tf  & bp_tf){
       message(paste("chr and bp info exists, therefore use that", sep=""))
@@ -238,6 +255,14 @@ coerceToGRCh38andGRCh37 <- function(libdir,chr_ix,bp_ix,rs_ix,file,gb,outDir, ve
   
       message(paste("get rsid from 'snps' database object", sep=""))
       rsids.GRCh38 <- .get_rsid_from_location(anngr2.GRCh38, snps)
+      
+      if(alleles){
+      message(paste("alleles swith is true, extracting allele info using bcftools from an original dbSNP vcf file", sep=""))
+      message(paste("  write vcf file", sep=""))
+      message(paste("  running bcftools isec", sep=""))
+      message(paste("  reading matches", sep=""))
+      message(paste("  map and add to GRanges", sep=""))
+      }
   
       message(paste("print to file all positions which did no have corresponding rsid", sep=""))
       .print_to_file_locations_missing_rsid(anngr2.GRCh38[-mcols(rsids.GRCh38)[["ix"]]], path_to_missing_rsid_file)
