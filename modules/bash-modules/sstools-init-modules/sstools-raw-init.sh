@@ -7,7 +7,7 @@
 #echo "----" 1>&2
 
 
-unset sstools_modifier infile_path output_dir input_dir output_file tabsep whitespace
+unset sstools_modifier infile_path output_dir input_dir output_file tabsep whitespace join
 
 function general_usage(){
       echo "Usage:"
@@ -23,11 +23,6 @@ function tabsep_usage(){
 function newheader_usage(){
       echo "Usage:"
       echo "    sstools-gb new-header -h                      (Display this help message)"
-      echo " "
-}
-function whatsep_usage(){
-      echo "Usage:"
-      echo "    sstools-gb what-sep -h                      (Display this help message)"
       echo " "
 }
 function newsep_usage(){
@@ -48,14 +43,9 @@ case "${1}" in
     getoptsstring=":hf:c:"
     shift 
     ;;
-  what-sep)
-    sstools_modifier=${1}
-    getoptsstring=":hf:"
-    shift 
-    ;;
   new-sep)
     sstools_modifier=${1}
-    getoptsstring=":hf:t:w:"
+    getoptsstring=":hf:t:w:j"
     shift 
     ;;
   *)
@@ -65,6 +55,7 @@ case "${1}" in
     ;;
 esac
 
+join=""
 # starting getops with :, puts the checking in silent mode for errors.
 while getopts "${getoptsstring}" opt "$@"; do
   case ${opt} in
@@ -85,6 +76,9 @@ while getopts "${getoptsstring}" opt "$@"; do
       ;;
     w )
       whitespace=$OPTARG
+      ;;
+    j )
+      join="*"
       ;;
     c )
       colnames=$OPTARG
@@ -131,28 +125,12 @@ elif [ "$sstools_modifier" == "new-header" ] ; then
     exit 1
   echo "${toreturn}"
   fi
-elif [ "$sstools_modifier" == "what-sep" ] ; then
-  if [ -n "$infile_path" ] ; then
-  :
-  else 
-    infile_path="-"
-  fi
-  tabsep="=TAB="
-  whitespace="_"
-  if [ -n "$infile_path" ] && [ -n "$tabsep" ] && [ -n "$whitespace" ]; then
-    printf "%s¬%s¬%s\n" "${infile_path} ${tabsep} ${whitespace}"  
-  else
-    echo "Error: all required params have to be set, input file missing"
-    whatsep_usage 1>&2 
-    exit 1
-  fi
 elif [ "$sstools_modifier" == "new-sep" ] ; then
   if [ -n "$infile_path" ] ; then
   :
   else 
     infile_path="-"
   fi
-  tabsep=""
   if [[ -n "${tabsep}" || -z "${tabsep}" ]] ; then
   :
   else 
@@ -165,10 +143,10 @@ elif [ "$sstools_modifier" == "new-sep" ] ; then
   fi
   if [ -n "$infile_path" ] && [[ -n "${tabsep}" || -z "${tabsep}" ]] && [[ -n "${whitespace}" || -z "${whitespace}" ]]; then
     #printf "%s¬%s¬%s\n" "${infile_path}" "${tabsep}" "${whitespace}"  1>&2
-    printf "%s¬%s¬%s\n" "${infile_path}" "${tabsep}" "${whitespace}"
+    printf "%s¬%s¬%s¬%s\n" "${infile_path}" "${tabsep}" "${whitespace}" "${join}"
   else
     echo "Error: all required params have to be set"
-    whatsep_usage 1>&2 
+    newsep_usage 1>&2 
     exit 1
   fi
 else
