@@ -11,7 +11,7 @@ rs_ix=args[4]
 file=args[5]
 gb=args[6]
 alleles=args[7]
-dbsnpvcf=args[8]
+dbsnp=args[8]
 outDir=args[8]
 SSTOOLS_ROOT=args[9]
 
@@ -26,7 +26,7 @@ message(paste(rs_ix,sep=""))
 message(paste(file,sep=""))
 message(paste(gb,sep=""))
 message(paste(alleles,sep=""))
-message(paste(dbsnpvcf,sep=""))
+message(paste(dbsnp,sep=""))
 message(paste(outDir,sep=""))
 message(paste("-------------------------------------",sep=""))
 message(paste(" Starting script",sep=""))
@@ -176,6 +176,7 @@ coerceToGRCh38andGRCh37 <- function(libdir,chr_ix,bp_ix,rs_ix,file,gb,outDir, ve
 
   #create outfile directories if they are missing
   system(paste("mkdir -p ",outDir,"/successfull_mappings", sep=""))
+  system(paste("mkdir -p ",outDir,"/successfull_mappings/tmp", sep=""))
   system(paste("mkdir -p ",outDir,"/successfull_mappings/GRCh37", sep=""))
   system(paste("mkdir -p ",outDir,"/successfull_mappings/GRCh38", sep=""))
   system(paste("mkdir -p ",outDir,"/failed_mappings", sep=""))
@@ -202,6 +203,12 @@ coerceToGRCh38andGRCh37 <- function(libdir,chr_ix,bp_ix,rs_ix,file,gb,outDir, ve
   #paths probably only used in the from rsid branch (but could happen to chr and bp also I guess)
   rsid_badname_file <- paste(outDir, "/failed_mappings/RSID_badname/RSID_badname_", basename, ".txt", sep="")
   path_to_missing_location_file <- paste(outDir, "/failed_mappings/no_coordinates_for_rsid/noCoord_", basename, ".txt", sep="")
+
+  if(alleles){
+    tmpdir <- paste(outDir, "/tmp-allele-fetch/", basename, sep="")
+    tmp_allele_file <- paste(tmpdir,"/", basename,".tmp", sep="")
+    path_to_multiallelic_filtered <- paste(outDir, "/failed_mappings/mutli_allelic_rsids/multiallelic_", basename, ".txt", sep="")
+  }
   
   #select correct library
   .libPaths(libdir)
@@ -221,8 +228,8 @@ coerceToGRCh38andGRCh37 <- function(libdir,chr_ix,bp_ix,rs_ix,file,gb,outDir, ve
     message(paste("enough field info is present to start", sep=""))
     #load packages
     message(paste("loading packages", sep=""))
-    suppressMessages(library("SNPlocs.Hsapiens.dbSNP151.GRCh38"))
-    snps <- SNPlocs.Hsapiens.dbSNP151.GRCh38
+    suppressMessages(library("SNPlocs.Hsapiens.dbSNP152.GRCh38"))
+    snps <- SNPlocs.Hsapiens.dbSNP152.GRCh38
     suppressMessages(library(liftOver))
     suppressMessages(library(data.table))
     if(alleles) suppressMessages(library(VariantAnnotation))
@@ -257,11 +264,32 @@ coerceToGRCh38andGRCh37 <- function(libdir,chr_ix,bp_ix,rs_ix,file,gb,outDir, ve
       rsids.GRCh38 <- .get_rsid_from_location(anngr2.GRCh38, snps)
       
       if(alleles){
-      message(paste("alleles swith is true, extracting allele info using bcftools from an original dbSNP vcf file", sep=""))
-      message(paste("  write vcf file", sep=""))
-      message(paste("  running bcftools isec", sep=""))
-      message(paste("  reading matches", sep=""))
-      message(paste("  map and add to GRanges", sep=""))
+        message(paste("alleles swith is true, extracting allele info using bcftools from a multi-allelic filtered dbSNP file", sep=""))
+        system(paste("mkdir -p ",tmpdir, sep=""))
+        
+        message(paste("  temporary write file with matched entries", sep=""))
+        file_out <- file(tmp_allele_file,"a")
+        writeLines(mcols(rsids.GRCh38)[["RefSNP_id"]], file_out)
+        close(file_out)
+        
+        message(paste("  sort temporary file", sep=""))
+        text1 <- paste("cat ", tmp_allele_file ," | sort -k1,1 > ", tmp_allele_file, ".sorted", sep="")
+        system(text1)
+
+        message(paste("  find overlaps with dbsnp", sep=""))
+        text2 <- paste(SSTOOLS_ROOT,"/modules/bash-modules/overlap-on-ordered-files.sh ",tmp_allele_file,".sorted ", dbsnp, " > ", tmp_allele_file, ".mapped", sep="")
+        system(text2)
+
+message(paste("  reading matches", sep=""))
+tam <- as.data.frame(fread(paste(tmp_allele_file, ".mapped", sep="")))
+message(paste("  map and add to GRanges", sep=""))
+m <- match(tam[,1], mcols(rsids.GRCh38)[["RefSNP_id"]])
+matched <- rsids.GRCh38[m]
+mcols(matched)[c("REF","ALT")] <- tam[,c(4,5)]
+message(paste("  print not matched", sep=""))
+notmatched <- rsids.GRCh38[-m]
+
+
       }
   
       message(paste("print to file all positions which did no have corresponding rsid", sep=""))

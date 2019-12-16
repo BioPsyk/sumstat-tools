@@ -47,6 +47,7 @@ For the purpose of modularity the suit contains the set of relatively independen
 * [sstools-gb](#sstools-gb)
 * [sstools-stats](#sstools-stats)
 * [sstools-utils](#sstools-utils)
+* [extra](#extra)
 
 Each of these have in turn a modifier with a set of parameter flags to perform a specific operation, for example:
 
@@ -130,7 +131,7 @@ Seems like this Jansenetal file is troublesome. Let us count the field numbers f
 #store bad file in variable
 badfile1="AD_sumstats_Jansenetal.txt.gz"
 
-#check number of fields when tab separation
+#check number of fields when forcing tab separation
 zcat ${DATA_DIR}/$badfile1 | head | awk 'BEGIN {FS="\t"}; {print NF }'
 
 ```
@@ -163,34 +164,27 @@ badfile2="TrynkaG_2011_22057235.txt.gz"
 zcat ${DATA_DIR}/${badfile2} | head | awk 'BEGIN {FS="\t"}; {print NF }'
 
 #analyze the separator composition
-zcat ${DATA_DIR}/${badfile2} | head | sstools-raw what-sep
+zcat ${DATA_DIR}/${badfile2} | sstools-raw new-sep -t "=tab=" -w "_" | head
+#zcat ${DATA_DIR}/${badfile2} | head | sstools-raw what-sep
 
-#first remove tabs replace with nothing, and then field separate on only whitespace (as well as skip the first column in the second iteration)
-zcat ${DATA_DIR}/${badfile2} | sstools-raw new-sep -t "cola" -w "\t" | head
- | gzip -c > ${SSD_CF}/${badfile2}.tmp
-
-#check all is ok, and if so then rename file (getting rid of .tmp)
-zcat ${SSD_CF}/$badfile2.tmp | head | awk '{print NF}'
-mv ${SSD_CF}/${badfile2}.tmp ${SSD_CF}/${badfile2}
+#replace tabs with empty string, then replace whitespace with \t, use -j flag to join consecutive delimiters (and skip first column)
+zcat ${DATA_DIR}/${badfile2} | sstools-raw new-sep -t "" -w "\t" -j | cut -f1 --complement | head
+zcat ${DATA_DIR}/${badfile2} | sstools-raw new-sep -t "" -w "\t" -j | cut -f1 --complement | gzip -c > ${OUT_DIR0}/${badfile2}
 ```
 
-#### Prepare the remaining files for the next step
+#### copy over all files that we did not change
 
-If the file looks alright we can link over the remaining files from the raw sumstat directory SSD.
+If the file looks alright we can link over the remaining files from the raw sumstat directory, or copy the files depending on available space (or if your virtual machine does not allow symlinks)
 
 ```shell
-#link over all files that were not modified (i.e., not bad files)
-#for file in ${SSD}/*; do
-#  file2=${file##*/}
-#  echo "link ${file} ---and--- ${file2}"
-#  ln -s ${file} ${SSD_CF}/${file2}
-#done
-
-#or copy, depending on available space (or if your virtual machine does not allow symlinks)
-for file in ${SSD}/*; do
-  file2=${file##*/}
-  echo "copying ${file} ---to--- ${SSD_CF}/${file2}"
-  cp -n ${file} ${SSD_CF}/${file2} || TRUE
+#here we are copying the files only if they don't already exist
+for file in ${DATA_DIR}/*; do
+  if [ -f "${OUT_DIR0}/$(basename ${file})" ]; then
+    :
+  else
+    echo "$file"
+    cp -n ${file} ${OUT_DIR0}/$(basename ${file})
+  fi
 done
 ```
 
@@ -479,3 +473,29 @@ zcat ${SSD1}/$selfile | head -n3
 ## <a name="sstools-utils"></a>sstools-utils
 
 There are many shared functionalities within this software suit, which we have tried to collect in the sstools-utils toolkit. All examples of usage is described within the other sections.
+
+## <a name="extra"></a>extra
+
+#### prepare dbsnp file
+To be able to correct the alleles using the dbSNP file, it has to be downloaded and filter for multi-allelic variants.
+This is how to do download and process the file using some simple awk commands.
+
+```shell
+#download a dbsnp vcf file from e.g.,
+#https://ftp.ncbi.nih.gov/snp/organisms/human_9606/VCF/
+
+
+#investigate how many multi-allelic variants we have for the available version.
+zcat All_20180418.vcf.gz | grep -v '^[#;]' | awk 'index($4,",")==0{suma++} index($4,",")!=0{sumb++} index($5,",")==0{sumc++} index($5,",")!=0{sumd++} index($4,",")!=0 && index($5,",")!=0{sume++} index($4,",")==0 && index($5,",")==0{sumf++} index($4,",")!=0 || index($5,",")!=0{sumg++} END{printf "%-14s %s\n%-14s %s\n%-14s %s\n%-14s %s\n%-14s %s\n%-14s %s\n%-14s %s\n", "ref=1", suma, "ref>1", sumb, "alt=1", sumc, "alt>1", sumd, "ref>1&alt>1", sume, "ref=1&alt=1", sumf, "ref>1|alt>1", sumg}'
+
+#Apply filter on multi allelic sites, and keep only the first 5 columns, which are the ones interesting for the allele check used by sstools.
+zcat All_20180418.vcf.gz | grep -v '^[#;]' | awk 'index($4,",")==0 && index($5,",")==0{print $1,$2,$3,$4,$5}' | gzip -c >  All_20180418_no_multi_allelic.gz
+
+#Make index
+zcat All_20180418_no_multi_allelic.gz | awk '/^#/ {next;} ($3==".") {next;} {OFS="\t";print $3,$1,$2;}' | sort -k1,1 > All_20180418_no_multi_allelic.inx
+
+#This takes a lot of time, so consider to set parallel=2 or higher (NOTE: setting parallel above 8 does not increase performance).
+zcat All_20180418_no_multi_allelic.gz | awk '($3==".") {next;} {OFS="\t";print $3,$1,$2,$4,$5;}' | sort -k1,1 --parallel=2 | gzip -c > All_20180418_no_multi_allelic_sorted_rsid.gz
+
+```
+This file is later going to be used as input when correcting alleles.
