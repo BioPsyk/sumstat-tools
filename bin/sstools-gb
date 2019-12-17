@@ -62,13 +62,13 @@ if [ $RESULT -eq 0 ]; then
       mapfile="${ARGS_TO_RFUNC[1]}"
       mapfile2="${ARGS_TO_RFUNC[2]}"
       allele="${ARGS_TO_RFUNC[3]}"
-      dbsnpvcf="${ARGS_TO_RFUNC[4]}"
+      dbsnp="${ARGS_TO_RFUNC[4]}"
       inx="${ARGS_TO_RFUNC[5]}"
       outdir="${ARGS_TO_RFUNC[6]}"
       logdir="${ARGS_TO_RFUNC[7]}"
       fname=$(eval "awk 'FNR==(${inx}+1){print \$1}' ${mapfile} ")
       ARGS_TO_RFUNC_2=$(wrap_lookup_prepare "${datadir}" "${mapfile}" "${mapfile2}" "${inx}")
-      echo "${ARGS_TO_RFUNC_2[@]} ${outdir} ${SSTOOLS_ROOT_ENV} >> ${logdir}/${fname}.log"
+      echo "${SSTOOLS_RSOFT}/Rscript ${SSTOOLS_GB_LOOKUP_RSCRIPT} ${ARGS_TO_RFUNC_2[@]} ${allele} ${dbsnp} ${outdir} ${SSTOOLS_ROOT_ENV} &> ${logdir}/${fname}.log"
       #${SSTOOLS_RSOFT}/Rscript ${SSTOOLS_GB_LOOKUP_RSCRIPT} ${ARGS_TO_RFUNC_2[@]} ${outdir} ${SSTOOLS_ROOT_ENV} &> ${logdir}/${fname}.log
 
     else
