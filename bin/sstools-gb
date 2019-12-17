@@ -58,7 +58,7 @@ if [ $RESULT -eq 0 ]; then
       #${SSTOOLS_RSOFT}/Rscript ${SSTOOLS_GB_LOOKUP_RSCRIPT} "${ARGS_TO_RFUNC[@]}" ${SSTOOLS_ROOT_ENV}
     elif [ "$sstools_modifier" == "lookup-wrap" ]; then
       #echo "${ARGS_TO_RFUNC[@]}"
-      datadir="${ARGS_TO_RFUNC[1]}"
+      datadir="${ARGS_TO_RFUNC[0]}"
       mapfile="${ARGS_TO_RFUNC[1]}"
       mapfile2="${ARGS_TO_RFUNC[2]}"
       allele="${ARGS_TO_RFUNC[3]}"
@@ -68,8 +68,14 @@ if [ $RESULT -eq 0 ]; then
       logdir="${ARGS_TO_RFUNC[7]}"
       fname=$(eval "awk 'FNR==(${inx}+1){print \$1}' ${mapfile} ")
       ARGS_TO_RFUNC_2=$(wrap_lookup_prepare "${datadir}" "${mapfile}" "${mapfile2}" "${inx}")
-      echo "${SSTOOLS_RSOFT}/Rscript ${SSTOOLS_GB_LOOKUP_RSCRIPT} ${ARGS_TO_RFUNC_2[@]} ${allele} ${dbsnp} ${outdir} ${SSTOOLS_ROOT_ENV} &> ${logdir}/${fname}.log"
-      #${SSTOOLS_RSOFT}/Rscript ${SSTOOLS_GB_LOOKUP_RSCRIPT} ${ARGS_TO_RFUNC_2[@]} ${outdir} ${SSTOOLS_ROOT_ENV} &> ${logdir}/${fname}.log
+      chr=${ARGS_TO_RFUNC_2[0]}
+      bp=${ARGS_TO_RFUNC_2[1]}
+      rs=${ARGS_TO_RFUNC_2[2]}
+      file=${ARGS_TO_RFUNC_2[3]}
+      gb=${ARGS_TO_RFUNC_2[4]}
+      #echo "${SSTOOLS_RSOFT}/Rscript ${SSTOOLS_GB_LOOKUP_RSCRIPT} ${chr} ${bp} ${rs} ${file} ${gb} ${allele} ${dbsnp} ${outdir} ${SSTOOLS_ROOT_ENV} &> ${logdir}/${fname}.log"
+      ${SSTOOLS_RSOFT}/Rscript ${SSTOOLS_GB_LOOKUP_RSCRIPT} ${chr} ${bp} ${rs} ${file} ${gb} ${allele} ${dbsnp} ${outdir} ${SSTOOLS_ROOT_ENV} &> ${logdir}/${fname}.log
+      #${SSTOOLS_RSOFT}/Rscript ${SSTOOLS_GB_LOOKUP_RSCRIPT} ${ARGS_TO_RFUNC_2[@]} ${fname} ${allele} ${dbsnp} ${outdir} ${SSTOOLS_ROOT_ENV} &> ${logdir}/${fname}.log
 
     else
       echo "no modifier" 1>&2

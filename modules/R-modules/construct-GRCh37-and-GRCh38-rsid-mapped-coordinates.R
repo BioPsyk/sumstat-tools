@@ -19,15 +19,16 @@ SSTOOLS_ROOT=args[9]
 message(paste("-------------------------------------",sep=""))
 message(paste(" Command line inputs are the following:",sep=""))
 message(paste("-------------------------------------",sep=""))
-message(paste(libdir,sep=""))
-message(paste(chr_ix,sep=""))
-message(paste(bp_ix,sep=""))
-message(paste(rs_ix,sep=""))
-message(paste(file,sep=""))
-message(paste(gb,sep=""))
-message(paste(alleles,sep=""))
-message(paste(dbsnp,sep=""))
-message(paste(outDir,sep=""))
+message(paste("libdir: ", libdir,sep=""))
+message(paste("chr_ix: ",chr_ix,sep=""))
+message(paste("bp_ix: ",bp_ix,sep=""))
+message(paste("rs_ix: ",rs_ix,sep=""))
+message(paste("file: ",file,sep=""))
+message(paste("gb: ",gb,sep=""))
+#message(paste("alleles: ",alleles,sep=""))
+#message(paste("dbsnp: ",dbsnp,sep=""))
+message(paste("outdir: ",outDir,sep=""))
+message(paste("SSTOOLS_ROOT: ",SSTOOLS_ROOT,sep=""))
 message(paste("-------------------------------------",sep=""))
 message(paste(" Starting script",sep=""))
 message(paste("-------------------------------------",sep=""))
@@ -36,14 +37,6 @@ message(paste("-------------------------------------",sep=""))
 # argument check
 ################################################################################
 
-#check for allele true
-if(alleles=="true"){
-  alleles <- TRUE
-}else if(alleles=="false"){
-  alleles <- FALSE 
-}else{
-  stop("allele:", alleles, "is not valid input")
-}
 
 ################################################################################
 # support functions
