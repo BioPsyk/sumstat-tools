@@ -10,8 +10,8 @@ bp_ix=args[3]
 rs_ix=args[4]
 file=args[5]
 gb=args[6]
-alleles=args[7]
-dbsnp=args[8]
+#alleles=args[7]
+#dbsnp=args[8]
 outDir=args[8]
 SSTOOLS_ROOT=args[9]
 
@@ -118,14 +118,9 @@ if(alleles=="true"){
   dt <- data.table(ix=mcols(gr)[["ix"]], CHR=sub("chr","", as.character(seqnames(gr)), ignore.case=TRUE), POS=start(gr))
   fwrite(dt, file=pathToMissingRsidFile, sep="\t")
 }
-.print_to_file_locations_having_rsid <- function(gr, pathToFoundRsidFile, alleles=FALSE){
-  if(alleles){dt <- data.table(ix=mcols(gr)[["ix"]], CHR=sub("chr","", as.character(seqnames(gr)), ignore.case=TRUE), POS=start(gr), dbSNP151=mcols(gr)[["RefSNP_id"]], REF=as.character(mcols(gr)[["REF"]]), ALT=as.character(mcols(gr)[["ALT"]]))
-  }else{ dt <- data.table(ix=mcols(gr)[["ix"]], CHR=sub("chr","", as.character(seqnames(gr)), ignore.case=TRUE), POS=start(gr), dbSNP151=mcols(gr)[["RefSNP_id"]])}
+.print_to_file_locations_having_rsid <- function(gr, pathToFoundRsidFile){
+  dt <- data.table(ix=mcols(gr)[["ix"]], CHR=sub("chr","", as.character(seqnames(gr)), ignore.case=TRUE), POS=start(gr), dbSNP151=mcols(gr)[["RefSNP_id"]], REF=as.character(mcols(gr)[["REF"]]), ALT=as.character(mcols(gr)[["ALT"]]))
   fwrite(dt, file=pathToFoundRsidFile, sep="\t")
-}
-.print_to_file_rsids_with_multiallelics <- function(gr, pathToMultiAllelicFile){
-  dt <- data.table(ix=mcols(gr)[["ix"]], CHR=sub("chr","", as.character(seqnames(gr)), ignore.case=TRUE), POS=start(gr), dbSNP151=mcols(gr)[["RefSNP_id"]])
-  fwrite(dt, file=pathToMultiAllelicFile, sep="\t")
 }
 
 fetchColFromFile <- function(file, field_ix){
@@ -181,7 +176,6 @@ coerceToGRCh38andGRCh37 <- function(libdir,chr_ix,bp_ix,rs_ix,file,gb,outDir, ve
 
   #create outfile directories if they are missing
   system(paste("mkdir -p ",outDir,"/successfull_mappings", sep=""))
-  system(paste("mkdir -p ",outDir,"/successfull_mappings/tmp", sep=""))
   system(paste("mkdir -p ",outDir,"/successfull_mappings/GRCh37", sep=""))
   system(paste("mkdir -p ",outDir,"/successfull_mappings/GRCh38", sep=""))
   system(paste("mkdir -p ",outDir,"/failed_mappings", sep=""))
@@ -189,7 +183,6 @@ coerceToGRCh38andGRCh37 <- function(libdir,chr_ix,bp_ix,rs_ix,file,gb,outDir, ve
   system(paste("mkdir -p ",outDir,"/failed_mappings/no_rsid_for_coordinates", sep=""))
   system(paste("mkdir -p ",outDir,"/failed_mappings/no_coordinates_for_rsid", sep=""))
   system(paste("mkdir -p ",outDir,"/failed_mappings/RSID_badname", sep=""))
-  system(paste("mkdir -p ",outDir,"/failed_mappings/multi_allelic_rsids", sep=""))
   
   #liftover failures (going to GRCh38)
   path_missing_position_file <- paste(outDir, "/failed_mappings/liftOverFilter/missing_1_", basename, ".txt", sep="")
@@ -210,11 +203,6 @@ coerceToGRCh38andGRCh37 <- function(libdir,chr_ix,bp_ix,rs_ix,file,gb,outDir, ve
   rsid_badname_file <- paste(outDir, "/failed_mappings/RSID_badname/RSID_badname_", basename, ".txt", sep="")
   path_to_missing_location_file <- paste(outDir, "/failed_mappings/no_coordinates_for_rsid/noCoord_", basename, ".txt", sep="")
 
-  if(alleles){
-    tmpdir <- paste(outDir, "/tmp-allele-fetch/", basename, sep="")
-    tmp_allele_file <- paste(tmpdir,"/", basename,".tmp", sep="")
-    path_to_multiallelic_filtered <- paste(outDir, "/failed_mappings/multi_allelic_rsids/multiallelic_", basename, ".txt", sep="")
-  }
   
   #select correct library
   .libPaths(libdir)
@@ -272,35 +260,6 @@ coerceToGRCh38andGRCh37 <- function(libdir,chr_ix,bp_ix,rs_ix,file,gb,outDir, ve
       message(paste("print to file all positions which did not have corresponding rsid", sep=""))
       .print_to_file_locations_missing_rsid(anngr2.GRCh38[-mcols(rsids.GRCh38)[["ix"]]], path_to_missing_rsid_file)
       
-      if(alleles){
-        message(paste("alleles swith is true, extracting allele info using bcftools from a multi-allelic filtered dbSNP file", sep=""))
-        system(paste("mkdir -p ",tmpdir, sep=""))
-        
-        message(paste("  temporary write file with matched entries", sep=""))
-        writeLines(mcols(rsids.GRCh38)[["RefSNP_id"]], tmp_allele_file)
-        
-        message(paste("  sort temporary file", sep=""))
-        text1 <- paste("cat ", tmp_allele_file ," | sort -k1,1 > ", tmp_allele_file, ".sorted", sep="")
-        system(text1)
-
-        message(paste("  find overlaps with dbsnp", sep=""))
-        text2 <- paste("sh ", SSTOOLS_ROOT,"/modules/bash-modules/overlap-on-ordered-files.sh ",tmp_allele_file,".sorted ", dbsnp, " > ", tmp_allele_file, ".mapped", sep="")
-        system(text2)
-
-        message(paste("  reading matches", sep=""))
-        tam <- as.data.frame(fread(paste(tmp_allele_file, ".mapped", sep="")))
-
-        message(paste("  map and add to GRanges", sep=""))
-        m <- match(tam[,1], mcols(rsids.GRCh38)[["RefSNP_id"]])
-        matched <- rsids.GRCh38[m]
-        mcols(matched)[c("REF","ALT")] <- tam[,c(4,5)]
-
-        message(paste("  print not matched, which is because they are multiallelic", sep=""))
-        .print_to_file_rsids_with_multiallelics(rsids.GRCh38[-m], path_to_multiallelic_filtered)
-
-        message(paste("  return to workflow using this version with allels and multiallelic filtered", sep=""))
-        rsids.GRCh38 <- matched
-      }
   
       message(paste("print to file all positions which had corresponding rsid", sep=""))
       .print_to_file_locations_having_rsid(rsids.GRCh38, path_to_successfull_mappings_file_38, alleles)
@@ -346,36 +305,6 @@ coerceToGRCh38andGRCh37 <- function(libdir,chr_ix,bp_ix,rs_ix,file,gb,outDir, ve
         message(paste("map back to rsids from location, to be sure we use the same rsid base among all sumstat files", sep=""))
         rsids.GRCh38 <- .get_rsid_from_location(granges(rsids.GRCh38), snps)
 
-        if(alleles){
-        message(paste("alleles swith is true, extracting allele info using bcftools from a multi-allelic filtered dbSNP file", sep=""))
-        system(paste("mkdir -p ",tmpdir, sep=""))
-        
-        message(paste("  temporary write file with matched entries", sep=""))
-        writeLines(mcols(rsids.GRCh38)[["RefSNP_id"]], tmp_allele_file)
-        
-        message(paste("  sort temporary file", sep=""))
-        text1 <- paste("cat ", tmp_allele_file ," | sort -k1,1 > ", tmp_allele_file, ".sorted", sep="")
-        system(text1)
-
-        message(paste("  find overlaps with dbsnp", sep=""))
-        text2 <- paste("sh ", SSTOOLS_ROOT,"/modules/bash-modules/overlap-on-ordered-files.sh ",tmp_allele_file,".sorted ", dbsnp, " > ", tmp_allele_file, ".mapped", sep="")
-        system(text2)
-
-        message(paste("  reading matches", sep=""))
-        tam <- as.data.frame(fread(paste(tmp_allele_file, ".mapped", sep="")))
-
-        message(paste("  map and add to GRanges", sep=""))
-        m <- match(tam[,1], mcols(rsids.GRCh38)[["RefSNP_id"]])
-        matched <- rsids.GRCh38[m]
-        mcols(matched)[c("REF","ALT")] <- tam[,c(4,5)]
-
-        message(paste("  print not matched, which is because they are multiallelic", sep=""))
-        .print_to_file_rsids_with_multiallelics(rsids.GRCh38[-m], path_to_multiallelic_filtered)
-
-        message(paste("  return to workflow using this version with allels and multiallelic filtered", sep=""))
-        rsids.GRCh38 <- matched
-        }
-  
         message(paste("print to file all positions which had corresponding rsid", sep=""))
         .print_to_file_locations_having_rsid(rsids.GRCh38, path_to_successfull_mappings_file_38, alleles)
   
