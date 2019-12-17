@@ -2,7 +2,7 @@
 #whatever the input make it array
 paramarray=($@)
 
-unset sstools_modifier R_library chr_field_name bp_field_name rs_field_name infile_path genome_build output_dir input_dir mapfile inx output_file
+unset sstools_modifier R_library chr_field_name bp_field_name rs_field_name infile_path genome_build output_dir input_dir mapfile inx output_file allele dbsnp
 
 function general_usage(){
       echo "Usage:"
@@ -87,7 +87,7 @@ esac
 paramarray=("${paramarray[@]:1}")
 
 allele=false
-dbsnpvcf="nodb"
+dbsnp="nodb"
 # starting getops with :, puts the checking in silent mode for errors.
 while getopts "${getoptsstring}" opt "${paramarray[@]}"; do
   case ${opt} in
@@ -123,8 +123,8 @@ while getopts "${getoptsstring}" opt "${paramarray[@]}"; do
     a )
       allele=true
       ;;
-    a )
-      dbsnpvcf=$OPTARG
+    b )
+      dbsnp=$OPTARG
       ;;
     l )
       log=$OPTARG
@@ -223,11 +223,11 @@ elif [ "$sstools_modifier" == "which-exists" ] ; then
 elif [ "$sstools_modifier" == "lookup" ]; then
   if [ -n "$infile_path" ] && [ -n "$genome_build" ] && [ -n "$output_dir" ] ; then
     if [ -n "$chr_field_name" ] && [ -n "$bp_field_name" ] && [ -n "$rs_field_name" ] ; then
-      toreturn="${SSTOOLS_RLIB} ${chr_field_name} ${bp_field_name} $rs_field_name ${infile_path} ${genome_build} ${allele} ${dbsnpvcf} ${output_dir}"
+      toreturn="${SSTOOLS_RLIB} ${chr_field_name} ${bp_field_name} $rs_field_name ${infile_path} ${genome_build} ${allele} ${dbsnp} ${output_dir}"
     elif [ -n "$chr_field_name" ] && [ -n "$bp_field_name" ] ; then
-      toreturn="${SSTOOLS_RLIB} ${chr_field_name} ${bp_field_name} --- ${infile_path} ${genome_build} ${allele} ${dbsnpvcf} ${output_dir}"
+      toreturn="${SSTOOLS_RLIB} ${chr_field_name} ${bp_field_name} --- ${infile_path} ${genome_build} ${allele} ${dbsnp} ${output_dir}"
     elif [ -n "$rs_field_name" ] ; then
-      toreturn="${SSTOOLS_RLIB} --- --- ${rs_field_name} ${infile_path} ${genome_build} ${allele} ${dbsnpvcf} ${output_dir}"
+      toreturn="${SSTOOLS_RLIB} --- --- ${rs_field_name} ${infile_path} ${genome_build} ${allele} ${dbsnp} ${output_dir}"
     else
       echo "Error: all required params have to be set"
       lookup_usage 1>&2
@@ -240,7 +240,7 @@ elif [ "$sstools_modifier" == "lookup" ]; then
   fi
 elif [ "$sstools_modifier" == "lookup-wrap" ]; then
   if [ -n "$input_dir" ] && [ -n "$mapfile" ] &&  [ -n "$genome_build" ] && [ -n "$output_dir" ] && [ -n "$inx" ] && [ -n "$log" ] ; then
-    toreturn="${input_dir} ${mapfile} ${genome_build} ${allele} ${dbsnpvcf} ${inx} ${output_dir} ${log}"
+    toreturn="${input_dir} ${mapfile} ${genome_build} ${allele} ${dbsnp} ${inx} ${output_dir} ${log}"
   else
     echo "Error: all required params have to be set, infile missing"
     lookupwrap_usage 1>&2 
