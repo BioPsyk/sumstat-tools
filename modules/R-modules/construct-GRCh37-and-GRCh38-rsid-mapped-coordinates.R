@@ -211,11 +211,10 @@ coerceToGRCh38andGRCh37 <- function(libdir,chr_ix,bp_ix,rs_ix,file,gb,outDir, ve
     message(paste("enough field info is present to start", sep=""))
     #load packages
     message(paste("loading packages", sep=""))
-    suppressMessages(library("SNPlocs.Hsapiens.dbSNP152.GRCh38"))
-    snps <- SNPlocs.Hsapiens.dbSNP152.GRCh38
+    suppressMessages(library("SNPlocs.Hsapiens.dbSNP151.GRCh38"))
+    snps <- SNPlocs.Hsapiens.dbSNP151.GRCh38
     suppressMessages(library(liftOver))
     suppressMessages(library(data.table))
-    if(alleles) suppressMessages(library(VariantAnnotation))
   
     if (chr_tf  & bp_tf){
       message(paste("chr and bp info exists, therefore use that", sep=""))
@@ -251,7 +250,7 @@ coerceToGRCh38andGRCh37 <- function(libdir,chr_ix,bp_ix,rs_ix,file,gb,outDir, ve
       
   
       message(paste("print to file all positions which had corresponding rsid", sep=""))
-      .print_to_file_locations_having_rsid(rsids.GRCh38, path_to_successfull_mappings_file_38, alleles)
+      .print_to_file_locations_having_rsid(rsids.GRCh38, path_to_successfull_mappings_file_38)
   
       message(paste("As a final major step we here liftOver back to GRCh37", sep=""))
       rsids.GRCh37 <- .coerce_from_GRCh38_to_GRCh37(rsids.GRCh38)
@@ -263,7 +262,7 @@ coerceToGRCh38andGRCh37 <- function(libdir,chr_ix,bp_ix,rs_ix,file,gb,outDir, ve
       rsids.GRCh37 <- unlist(rsids.GRCh37)
   
       message(paste("now write GRCh37 to file", sep=""))
-      .print_to_file_locations_having_rsid(rsids.GRCh37, path_to_successfull_mappings_file_37, alleles)
+      .print_to_file_locations_having_rsid(rsids.GRCh37, path_to_successfull_mappings_file_37)
   
       cat("mapping to GRCh37, GRCh38 and RSIDs complete for ", basename ,"\n")
       
@@ -295,7 +294,7 @@ coerceToGRCh38andGRCh37 <- function(libdir,chr_ix,bp_ix,rs_ix,file,gb,outDir, ve
         rsids.GRCh38 <- .get_rsid_from_location(granges(rsids.GRCh38), snps)
 
         message(paste("print to file all positions which had corresponding rsid", sep=""))
-        .print_to_file_locations_having_rsid(rsids.GRCh38, path_to_successfull_mappings_file_38, alleles)
+        .print_to_file_locations_having_rsid(rsids.GRCh38, path_to_successfull_mappings_file_38)
   
         message(paste("As a final major step we here liftOver back to GRCh37", sep=""))
         rsids.GRCh37 <- .coerce_from_GRCh38_to_GRCh37(rsids.GRCh38)
@@ -308,7 +307,7 @@ coerceToGRCh38andGRCh37 <- function(libdir,chr_ix,bp_ix,rs_ix,file,gb,outDir, ve
   
         #now write GRCh37 to file
         message(paste("now write GRCh37 to file", sep=""))
-        .print_to_file_locations_having_rsid(rsids.GRCh37, path_to_successfull_mappings_file_37, alleles)
+        .print_to_file_locations_having_rsid(rsids.GRCh37, path_to_successfull_mappings_file_37)
   
         cat("mapping to GRCh37, GRCh38 and RSIDs complete for ", basename ,"\n")
       } 
