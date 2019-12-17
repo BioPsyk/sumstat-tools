@@ -61,11 +61,9 @@ if [ $RESULT -eq 0 ]; then
       datadir="${ARGS_TO_RFUNC[0]}"
       mapfile="${ARGS_TO_RFUNC[1]}"
       mapfile2="${ARGS_TO_RFUNC[2]}"
-      allele="${ARGS_TO_RFUNC[3]}"
-      dbsnp="${ARGS_TO_RFUNC[4]}"
-      inx="${ARGS_TO_RFUNC[5]}"
-      outdir="${ARGS_TO_RFUNC[6]}"
-      logdir="${ARGS_TO_RFUNC[7]}"
+      inx="${ARGS_TO_RFUNC[3]}"
+      outdir="${ARGS_TO_RFUNC[4]}"
+      logdir="${ARGS_TO_RFUNC[5]}"
       fname=$(eval "awk 'FNR==(${inx}+1){print \$1}' ${mapfile} ")
       ARGS_TO_RFUNC_2=$(wrap_lookup_prepare "${datadir}" "${mapfile}" "${mapfile2}" "${inx}")
       chr=${ARGS_TO_RFUNC_2[0]}
@@ -74,7 +72,7 @@ if [ $RESULT -eq 0 ]; then
       file=${ARGS_TO_RFUNC_2[3]}
       gb=${ARGS_TO_RFUNC_2[4]}
       #echo "${SSTOOLS_RSOFT}/Rscript ${SSTOOLS_GB_LOOKUP_RSCRIPT} ${chr} ${bp} ${rs} ${file} ${gb} ${allele} ${dbsnp} ${outdir} ${SSTOOLS_ROOT_ENV} &> ${logdir}/${fname}.log"
-      ${SSTOOLS_RSOFT}/Rscript ${SSTOOLS_GB_LOOKUP_RSCRIPT} ${chr} ${bp} ${rs} ${file} ${gb} ${allele} ${dbsnp} ${outdir} ${SSTOOLS_ROOT_ENV} &> ${logdir}/${fname}.log
+      ${SSTOOLS_RSOFT}/Rscript ${SSTOOLS_GB_LOOKUP_RSCRIPT} ${chr} ${bp} ${rs} ${file} ${gb} ${outdir} ${SSTOOLS_ROOT_ENV} &> ${logdir}/${fname}.log
       #${SSTOOLS_RSOFT}/Rscript ${SSTOOLS_GB_LOOKUP_RSCRIPT} ${ARGS_TO_RFUNC_2[@]} ${fname} ${allele} ${dbsnp} ${outdir} ${SSTOOLS_ROOT_ENV} &> ${logdir}/${fname}.log
 
     else

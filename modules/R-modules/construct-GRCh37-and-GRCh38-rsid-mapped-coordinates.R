@@ -10,10 +10,8 @@ bp_ix=args[3]
 rs_ix=args[4]
 file=args[5]
 gb=args[6]
-#alleles=args[7]
-#dbsnp=args[8]
-outDir=args[8]
-SSTOOLS_ROOT=args[9]
+outDir=args[7]
+SSTOOLS_ROOT=args[8]
 
 #Arguments retrieved
 message(paste("-------------------------------------",sep=""))
@@ -25,8 +23,6 @@ message(paste("bp_ix: ",bp_ix,sep=""))
 message(paste("rs_ix: ",rs_ix,sep=""))
 message(paste("file: ",file,sep=""))
 message(paste("gb: ",gb,sep=""))
-#message(paste("alleles: ",alleles,sep=""))
-#message(paste("dbsnp: ",dbsnp,sep=""))
 message(paste("outdir: ",outDir,sep=""))
 message(paste("SSTOOLS_ROOT: ",SSTOOLS_ROOT,sep=""))
 message(paste("-------------------------------------",sep=""))
