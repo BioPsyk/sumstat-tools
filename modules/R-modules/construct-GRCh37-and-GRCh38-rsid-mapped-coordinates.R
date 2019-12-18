@@ -23,7 +23,7 @@ message(paste("bp_ix: ",bp_ix,sep=""))
 message(paste("rs_ix: ",rs_ix,sep=""))
 message(paste("file: ",file,sep=""))
 message(paste("gb: ",gb,sep=""))
-message(paste("outdir: ",outDir,sep=""))
+message(paste("outDir: ",outDir,sep=""))
 message(paste("SSTOOLS_ROOT: ",SSTOOLS_ROOT,sep=""))
 message(paste("-------------------------------------",sep=""))
 message(paste(" Starting script",sep=""))
@@ -47,7 +47,7 @@ message(paste("-------------------------------------",sep=""))
 .get_rsid_from_location <- function(gr, snps){
   #check rsid annotation database
   suppressWarnings(seqlevelsStyle(gr) <- "NCBI" )
-  rsids.GRCh38 <- snpsByOverlaps(snps, gr)
+  rsids.GRCh38 <- snpsByOverlaps(snps, gr, genome="GRCh38")
   #calculate overlap 
   hits <- findOverlaps(rsids.GRCh38, gr)
   #add index to keep track of how the result relates to the original data
@@ -83,6 +83,14 @@ message(paste("-------------------------------------",sep=""))
   liftOver(gr, ch)
 }
 
+.split_multiallelics_to_multiple_rows <- function(gr){
+   le <- unlist(lapply(mcols(gr)[["alt_alleles"]], length))
+   lix <- rep(1:length(gr), unlist(lapply(mcols(gr)[["alt_alleles"]], length)))
+   alts <- unlist(mcols(gr)[["alt_alleles"]])
+   gr2 <- gr[lix]
+   mcols(gr2)[["alt_allele"]] <- alts
+   gr2
+}
 
 .correct_and_document_failed_variants_LiftOver <- function(gr, pathMissingLocationsFile, pathMultimappedLocationsFile){
   le <- unlist(lapply(gr, length))
@@ -108,11 +116,11 @@ message(paste("-------------------------------------",sep=""))
   fwrite(dt, file=pathToMissingRsidFile, sep="\t")
 }
 .print_to_file_locations_having_rsid <- function(gr, pathToFoundRsidFile){
-  dt <- data.table(ix=mcols(gr)[["ix"]], CHR=sub("chr","", as.character(seqnames(gr)), ignore.case=TRUE), POS=start(gr), dbSNP151=mcols(gr)[["RefSNP_id"]], REF=as.character(mcols(gr)[["REF"]]), ALT=as.character(mcols(gr)[["ALT"]]))
+  dt <- data.table(ix=mcols(gr)[["ix"]], CHR=sub("chr","", as.character(seqnames(gr)), ignore.case=TRUE), POS=start(gr), dbSNP151=mcols(gr)[["RefSNP_id"]], REF=unlist(mcols(gr)[["ref_allele"]]), ALT=unlist(mcols(gr)[["alt_allele"]]))
   fwrite(dt, file=pathToFoundRsidFile, sep="\t")
 }
 
-fetchColFromFile <- function(file, field_ix){
+.fetchColFromFile <- function(file, field_ix){
   #use special awk split function
   AWK_SELECT_BY_COLNAME=paste(SSTOOLS_ROOT, "/modules/awk-modules/select-columns-from-index.awk", sep="")
   text1 <- paste("zcat ", file, " | head -n1000 | gawk -f ", AWK_SELECT_BY_COLNAME, " -v mapcols=\"",field_ix,"\" -v newcols=\"",field_ix,"\" | tail -n+2", sep="")
@@ -219,8 +227,8 @@ coerceToGRCh38andGRCh37 <- function(libdir,chr_ix,bp_ix,rs_ix,file,gb,outDir, ve
     if (chr_tf  & bp_tf){
       message(paste("chr and bp info exists, therefore use that", sep=""))
       message(paste("reading chr and bp info, and setting inital index", sep=""))
-      chr <- sub("\t","", fetchColFromFile(file, chr_ix))
-      bp <- as.integer(sub("\t","", fetchColFromFile(file, bp_ix)))
+      chr <- sub("\t","", .fetchColFromFile(file, chr_ix))
+      bp <- as.integer(sub("\t","", .fetchColFromFile(file, bp_ix)))
       ix <- 1:length(bp)
   
       #Add this line when testing for what happens when a position can't be lifted over (here from the chrom end, which is badly mapped in hg19)
@@ -245,9 +253,11 @@ coerceToGRCh38andGRCh37 <- function(libdir,chr_ix,bp_ix,rs_ix,file,gb,outDir, ve
       message(paste("get rsid from 'snps' database object", sep=""))
       rsids.GRCh38 <- .get_rsid_from_location(anngr2.GRCh38, snps)
 
+      message(paste("split multi-allelic variants to multiple rows", sep=""))
+      rsids.GRCh38 <- .split_multiallelics_to_multiple_rows(rsids.GRCh38)
+
       message(paste("print to file all positions which did not have corresponding rsid", sep=""))
       .print_to_file_locations_missing_rsid(anngr2.GRCh38[-mcols(rsids.GRCh38)[["ix"]]], path_to_missing_rsid_file)
-      
   
       message(paste("print to file all positions which had corresponding rsid", sep=""))
       .print_to_file_locations_having_rsid(rsids.GRCh38, path_to_successfull_mappings_file_38)
@@ -269,7 +279,7 @@ coerceToGRCh38andGRCh37 <- function(libdir,chr_ix,bp_ix,rs_ix,file,gb,outDir, ve
     }else{
 
       message(paste("Starting with RSIDs as input the workflow will be slightly different than starting from position", sep=""))
-      rsids <- sub("\t","", fetchColFromFile(file, rs_ix))
+      rsids <- sub("\t","", .fetchColFromFile(file, rs_ix))
       ix <- 1:length(rsids)
   
       message(paste("first step is to separate snps not starting with rs)", sep=""))
@@ -290,8 +300,11 @@ coerceToGRCh38andGRCh37 <- function(libdir,chr_ix,bp_ix,rs_ix,file,gb,outDir, ve
         message(paste("print all rsids2 that did not map to a position", sep=""))
         print_to_file_rsids_that_did_not_map_to_position(mcols(rsids.GRCh38)[["RefSNP_id"]], rsids2, rix, path_to_missing_location_file)
   
-        message(paste("map back to rsids from location, to be sure we use the same rsid base among all sumstat files", sep=""))
+        message(paste("map back to rsids from location, to be sure we use the same rsid base among all sumstat files, and get allele info", sep=""))
         rsids.GRCh38 <- .get_rsid_from_location(granges(rsids.GRCh38), snps)
+
+        message(paste("split multi-allelic variants to multiple rows", sep=""))
+        rsids.GRCh38 <- .split_multiallelics_to_multiple_rows(rsids.GRCh38)
 
         message(paste("print to file all positions which had corresponding rsid", sep=""))
         .print_to_file_locations_having_rsid(rsids.GRCh38, path_to_successfull_mappings_file_38)
