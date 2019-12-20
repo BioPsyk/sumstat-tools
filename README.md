@@ -422,6 +422,66 @@ done
 
 Now the tutorial for sstools-gb has come to an end.
 
+## <a name="sstools-eallele"></a>sstools-eallele
+
+Depending on array-specific annotation or reference annotations either the forward or reverse strand is reported in the final GWAS result. Additionally depending on the population, the effect allele could be any of a set of multi-allelic variants. To compare different GWAS studies we need to match them to a reference source. Here we are using dbsnp151 to do that.
+
+A ground truth for our deduction algorithm is the table of complementary alleles:
+
+| + | - |
+|---|---|
+| A | T |
+| T | A |
+| G | C |
+| C | G |
+
+The table is fundamental for out deduction algorithm, but also makes it difficult to discern between the complementary pairs AT and GC. For biallelic variants, where we have only the effect allele (A1) as source we then have these possible scenarios:
+
+| Effect allele   | Possible source |
+|----------|:-------------:|
+| A or T |  A-T, T-A, A-G, G-A, A-C, C-A, T-G, G-T, T-C, C-T |
+| G or C |  G-A, A-G, G-T, T-G, G-C, C-G, C-T, T-C, C-G, G-C |
+
+That is a lot of options and we can't make any good conclusions. Luckily, if we have a database for each variant with the corresponding allele it can further reduce the number of possible variants. We will here use the reference allele for the effect allele in the corrected data. As you can see we still have a problem when both alleles in each strand pair constitutes the variant in the database.
+
+| Effect allele   | db (ref-alt) | Possible source | New effect allele | Effect modifier |
+|----------|:-------------:|:-------------:|:-------------:|:-------------:|
+| A or T | A-G |  A-G  | A | 1 |
+| A or T | G-A |  G-A  | G |-1 |
+| A or T | A-T |  A-T, T-A  | A | -- |
+| A or T | T-A |  T-A, A-T  | T | -- |
+
+Extending the same methodology to multi-allelic variants we would get.
+
+| Effect allele   | db (ref-alt1-alt2) | Possible source | New effect allele | Effect modifier |
+|----------|:-------------:|:-------------:|:-------------:|:-------------:|
+| A or T | A-G-C |  A-G, A-C  | A | 1 |
+| A or T | G-A-C |  G-A, C-A  | G | -- |
+| A or T | C-G-A |  C-A, G-A  | C | -- |
+| A or T | A-G-T |  A-G, A-T, T-G | A | -- |
+
+Fortunately, we are often provided with both the alleles used in the model. Not including multi-allelic variants we would get:
+
+| Effect allele (A1 and A2)   | db (ref-alt) | Expected combinations | New effect allele | Effect modifier | Comment |
+|----------|:-------------:|:-------------:|:-------------:|:-------------:|:-------------:|
+| A or T and G or C | A-G |  A-G, T-C  | A | 1, -1 | A2 confirmed to be G  |
+| A or T and G or C | A-C |  --  | A | -- | A2 is not the expected G |
+| A or T and G or C | T-C |  T-C, A-G  | T | 1, -1 | A2 confirmed to be C  |
+| A or T and G or C | T-G |  --  | T | -- | A2 is not the expected C |
+| A or T and G or C | G-A |  G-A, C-T  | G | -1, 1 | A2 confirmed to be C  |
+| A or T and G or C | C-A |  --  | C | -- | A2 is not the expected C |
+
+In most cases we should be able to confirm A2, and it can be a good sanity check of the data to investigate the proportion of the not expected alleles.
+
+Continuing to investigate palindromic SNPs to see if A2 provides any help in discerning the direction of effect:
+
+| Effect allele (A1 and A2)   | db (ref-alt) | Possible source | New effect allele | Effect modifier | Comment |
+|----------|:-------------:|:-------------:|:-------------:|:-------------:|:-------------:|
+| A or T and T or A | A-T |  A-T, T-A  | A | -- | not possible finding the direction of effect  |
+| A or T and T or A | A-C |  A-T, T-A  | A | -- | A2 is not the expected T  |
+
+
+
 ## <a name="sstools-stats"></a>sstools-stats
 
 Check statistics and create different formats from what is available.
@@ -496,6 +556,9 @@ zcat All_20180418_no_multi_allelic.gz | awk '/^#/ {next;} ($3==".") {next;} {OFS
 
 #This takes a lot of time, so consider to set parallel=2 or higher (NOTE: setting parallel above 8 does not increase performance).
 zcat All_20180418_no_multi_allelic.gz | awk '($3==".") {next;} {OFS="\t";print $3,$1,$2,$4,$5;}' | sort -k1,1 --parallel=2 | gzip -c > All_20180418_no_multi_allelic_sorted_rsid.gz
+
+#Try join
+
 
 ```
 This file is later going to be used as input when correcting alleles.
