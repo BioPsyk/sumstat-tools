@@ -29,11 +29,6 @@ source ${SSTOOLS_FUNCTIONS_LIBRARY}/sstools-mapfiles-helpers.sh
 #echo "$4" 1>&2
 #echo "----" 1>&2
 
-array=()
-while read -rd "$sep" i; do
-    array+=("$i")
-done < <(printf '%s%s' "$string" "$sep")
-
 #echo "$( IFS=$' '; echo "${userarr[*]}" )" 
 #${SSTOOLS_ROOT_ENV}/modules/bash-modules/sstools-init-modules/sstools-gb-init.sh "$( IFS=$' '; echo "${userarr[*]}" )"
 IFS='¬' read -r -a ARGS_TO_FUNC <<< $(${SSTOOLS_ROOT_ENV}/modules/bash-modules/sstools-init-modules/sstools-raw-init.sh "$@") 

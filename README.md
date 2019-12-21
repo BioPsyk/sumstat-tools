@@ -496,10 +496,22 @@ OUT_DIR3="out/common_effect_allele"
 
 # Make outfolder if it does not already exist
 mkdir -p ${OUT_DIR3}
+
 ```
 
-#### 
+#### Assemble correct columns with ix
 
+```shell
+# Specify path to input data (exists in the data folder of root of sumstat-tools)
+infile1="${DATA_DIR}/cad.add.160614.website.txt.gz"
+
+# Specify path to reference db
+REF_DB_FILE="out/genome_location_information/successfull_mappings/GRCh38/remaining_cad.add.160614.website.txt"
+
+sstools-utils assemble -f $infile1 -g $REF_DB_FILE | head
+
+
+```
 
 
 ## <a name="sstools-stats"></a>sstools-stats
