@@ -42,9 +42,9 @@ function mapinfo_from_index() {
 
 }
 
-function gbinfo_from_index() {
+function gbinfo_from_basenam() {
   mapin=$1
-  inx=$2
+  basenam=$2
   names=$3
 
   if $names ; then
@@ -53,7 +53,7 @@ function gbinfo_from_index() {
     inx2=$(( $inx + 1 ))
   fi
 
-  cmd="awk 'FNR==${inx2}{print \$2}' ${mapin}"
+  cmd="awk '/^${basenam}/{print \$2}' ${mapin}"
 
   mapinfo="$(eval ${cmd})"
   echo $mapinfo
@@ -66,19 +66,13 @@ function wrap_lookup_prepare() {
   gbin=$3
   inx=$4
 
-  #echo $datadir
-  #echo $mapin
-  #echo $gb
-  #echo $inx
-  
   infile_path=$(filename_in_dir_from_index $datadir $mapin $inx false)
+  basenam=$(basename ${infile_path})
   mapinfo=$(mapinfo_from_index $mapin $inx false)
-  gb=$(gbinfo_from_index $gbin $inx false)
-
+  gb=$(gbinfo_from_basenam $gbin $basenam false)
 
   #return all needed variables or run single 'which'  
   echo "${SSTOOLS_RLIB} ${mapinfo} ${infile_path} ${gb}" 
-
 }
 
 function wrap_assemble_prepare() {

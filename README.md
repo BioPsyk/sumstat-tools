@@ -480,23 +480,27 @@ Continuing to investigate palindromic SNPs to see if A2 provides any help in dis
 | A or T and T or A | A-T |  A-T, T-A  | A | -- | not possible finding the direction of effect  |
 | A or T and T or A | A-C |  A-T, T-A  | A | -- | A2 is not the expected T  |
 
-#### <a name="reference alleles required"></a>sstools-stats
+#### Reference alleles required
 
 The reference database decides which allele is the new common effect allele to use for all sumstats. Here we are going to use the dbsnp151 alleles from sstools-gb as lookup and use the reference allele within dbsnp151 as the new common effect allele. Therefore, we have to specify our path to the raw sumstat file and the mapped file from sstools-gb.
 
 ```shell
-#Specify path to input data (exists in the data folder of root of sumstat-tools)
+# Specify path to input data (exists in the data folder of root of sumstat-tools)
 DATA_DIR="data/gwas-summary-stats"
 
-#Specify path to reference db
-REF_DB="out/common_effect_allele"
+# Specify path to reference db
+REF_DB_DIR="out/genome_location_information/successfull_mappings/GRCh38"
 
-#Specify path to outfolder
+# Specify path to outfolder
 OUT_DIR3="out/common_effect_allele"
 
 # Make outfolder if it does not already exist
 mkdir -p ${OUT_DIR3}
 ```
+
+#### 
+
+
 
 ## <a name="sstools-stats"></a>sstools-stats
 
