@@ -57,9 +57,15 @@ if [ $RESULT -eq 0 ]; then
       readoption "${ARGS_TO_FUNC[0]}" | eval "${cmd}"
     elif [ "$sstools_modifier" == "new-sep" ]; then
       #echo "${ARGS_TO_FUNC[@]}"
+      #echo "${ARGS_TO_FUNC[0]}"
+      #echo "${ARGS_TO_FUNC[1]}"
+      #echo "${ARGS_TO_FUNC[2]}"
+      #echo "${ARGS_TO_FUNC[3]}"
       AWK_CHANGE_SEPARATOR="${SSTOOLS_ROOT_ENV}/modules/awk-modules/change-separator.awk"
       cmd1="awk -f ${AWK_CHANGE_SEPARATOR} -vFS='\t${ARGS_TO_FUNC[3]}' -vOFS='${ARGS_TO_FUNC[1]}' "
       cmd2="awk -f ${AWK_CHANGE_SEPARATOR} -vFS='[ ]${ARGS_TO_FUNC[3]}' -vOFS='${ARGS_TO_FUNC[2]}' "
+      #readoption "${ARGS_TO_FUNC[0]}" 
+      #readoption "${ARGS_TO_FUNC[0]}" | eval "${cmd1}" 
       readoption "${ARGS_TO_FUNC[0]}" | eval "${cmd1}" | eval "${cmd2}"
     else
       echo "no modifier" 1>&2

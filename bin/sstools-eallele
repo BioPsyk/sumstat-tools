@@ -1,0 +1,50 @@
+
+userarr=("$@")
+sstools_modifier=$1
+#echo ${sstools_modifier}
+#execute global config file to get most up to date configurations
+#Not the most beautiful way to set an environmental variable but it works
+
+CURDIR=`/bin/pwd`
+BASEDIR=$(dirname $0)
+ABSPATH=$(readlink -f $0)
+ABSDIR=$(dirname $ABSPATH)
+
+SSTOOLS_ROOT_ENV="${ABSDIR%/bin}"
+export SSTOOLS_ROOT_ENV=${SSTOOLS_ROOT_ENV}
+#export paths in main-conf
+source ${SSTOOLS_ROOT_ENV}/config/config-main.conf
+#export paths in user-conf
+source ${SSTOOLS_ROOT_ENV}/config/config-user.conf
+#echo "${SSTOOLS_ROOT_ENV}"
+
+source ${SSTOOLS_FUNCTIONS_LIBRARY}/sstools-pipe-helpers.sh
+source ${SSTOOLS_FUNCTIONS_LIBRARY}/sstools-mapfiles-helpers.sh
+
+#${SSTOOLS_ROOT_ENV}/modules/bash-modules/sstools-init-modules/sstools-gb-init.sh "$( IFS=$' '; echo "${userarr[*]}" )"
+VAR_RETURN=$(${SSTOOLS_ROOT_ENV}/modules/bash-modules/sstools-init-modules/sstools-utils-init.sh "$( IFS=$' '; echo "${userarr[*]}" )")
+RESULT=$?
+#If the above (most recent command) was successful, then 
+if [ $RESULT -eq 0 ]; then
+  #echo "parsing complete" 1>&2
+  #run script based on modifier
+  if [ "$VAR_RETURN" == "" ]; then
+   # echo "parsing complete script no output" 1>&2
+    exit 1
+  else
+    if [ "$sstools_modifier" == "modifier" ]; then
+      VAR_RETURN=(${VAR_RETURN})
+      echo "${VAR_RETURN[*]}"
+      #infile="${VAR_RETURN[0]}"
+      #cmd="gawk -f ${SSTOOLS_ADHOCDO_FUNCTIONS_ARRANGE} -v mapcols='${specialfunction}' -v newcols='${newcols}'"
+      #readoption "${infile}" | eval "${cmd}"
+    elif [ "$sstools_modifier" == "placeholder" ]; then
+    else
+      echo "no modifier" 1>&2
+    fi
+  fi
+else
+  echo "parsing failed" 1>&2
+  exit 1
+fi
+

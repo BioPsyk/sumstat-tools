@@ -247,7 +247,7 @@ elif [ "$sstools_modifier" == "ad-hoc-do" ] ; then
     exit 1
   fi
 elif [ "$sstools_modifier" == "assemble" ] ; then
-  if [ -n "$infile" ] && [ -n "$successmapping" ] ; then
+  if [ -n "$successmapping" ] ; then
 
     if [ -n "$infile" ] ; then
     :
@@ -255,7 +255,7 @@ elif [ "$sstools_modifier" == "assemble" ] ; then
       infile="-"
     fi
     #cmd1="awk -v newheader='$((head -n1 ${successmapping} & gzip -dc ${infile} | head -n1) | awk -vRS='\n' -vORS='' 'NR==1{print $0"\t"}; NR==2{print $0"\n"}')' 'BEGIN{print newheader} NR==FNR{a[\$1]=\$0;next} FNR in a{print \$0, a[FNR]}' <(tail -n+2 ${successmapping}) <(gzip -dc ${infile} | tail -n+2)"
-    echo "${infile}"
+    echo "${infile} ${successmapping}"
   else
     echo "Error: not enough params are set"
     assemble_usage 1>&2 

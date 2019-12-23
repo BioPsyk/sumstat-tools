@@ -136,7 +136,7 @@ elif [ "$sstools_modifier" == "new-sep" ] ; then
   else 
     tabsep=""
   fi
-  if [ -n "$whitespace" ] ; then
+  if [[ -n "${whitespace}" || -z "${whitespace}" ]] ; then
   :
   else 
     whitespace=""
