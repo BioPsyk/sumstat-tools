@@ -64,7 +64,7 @@ function file-in-map(){
 case "${paramarray[0]}" in
   ad-hoc)
     sstools_modifier=${paramarray[0]}
-    getoptsstring=":hlnbs:"
+    getoptsstring=":hlns:"
     shift # Remove `install` from the argument list
     ;;
   ad-hoc-do)
@@ -74,7 +74,7 @@ case "${paramarray[0]}" in
     ;;
   assemble)
     sstools_modifier=${paramarray[0]}
-    getoptsstring=":hn:f:g:"
+    getoptsstring=":hn:f:g:c:"
     shift # Remove `install` from the argument list
     ;;
   assemble-wrap)
@@ -106,6 +106,9 @@ esac
 
 # remove modifier, 1st element
 paramarray=("${paramarray[@]:1}")
+
+#set default params
+separator="\t"
 
 # starting getops with :, puts the checking in silent mode for errors.
 while getopts "${getoptsstring}" opt "${paramarray[@]}"; do
@@ -151,8 +154,8 @@ while getopts "${getoptsstring}" opt "${paramarray[@]}"; do
         names=true
       fi
       ;;
-    b )
-      beautify=true
+    c )
+      selcols="$OPTARG"
       ;;
     m )
       mapfile="$OPTARG"
@@ -212,27 +215,32 @@ if [ "$sstools_modifier" == "ad-hoc" ] ; then
     else
       cmd1="${cmd1} | tail -n+2"
     fi
-    
-    #show a more readable output
-    if [ $beautify ] ; then
-      cmd1="${cmd1} | column -t"
-    fi
+    echo "${cmd1}"
   else
     echo "Error: not enough params are set"
     adhocdo_usage 1>&2 
     exit 1
   fi
 elif [ "$sstools_modifier" == "ad-hoc-do" ] ; then
-  if [ -n "$infile" ] && [ -n "$specialfunction" ]; then
-    #where is the awk script stored
-    cmd1="zcat ${infile} | gawk -f ${SSTOOLS_ADHOCDO_FUNCTIONS_ARRANGE} -v mapcols='${specialfunction}'"
-    
+  if [ -n "$specialfunction" ]; then
+
+    if [ -n "$infile" ] ; then
+    :
+    else 
+      infile="-"
+    fi
+
     #which colnames to use in new output
     if [ -n "$names" ] ; then
-      cmd1="${cmd1} -v newcols='${names}'"
+      newcols="${names}"
     else
-      cmd1="${cmd1} -v newcols='tmp' | tail -n+2"
+      #reuse mapcols as outcols      
+      newcols_nocomma=${specialfunction//,|/}
+      newcols=${newcols_nocomma//\|/,}
     fi
+   
+    echo "${infile} ${SSTOOLS_ADHOCDO_FUNCTIONS_ARRANGE} ${specialfunction} ${newcols}"
+
   else
     echo "Error: not enough params are set"
     adhocdo_usage 1>&2 
@@ -240,7 +248,14 @@ elif [ "$sstools_modifier" == "ad-hoc-do" ] ; then
   fi
 elif [ "$sstools_modifier" == "assemble" ] ; then
   if [ -n "$infile" ] && [ -n "$successmapping" ] ; then
-  cmd1="awk -v newheader='$((head -n1 ${successmapping} & gzip -dc ${infile} | head -n1) | awk -vRS='\n' -vORS='' 'NR==1{print $0"\t"}; NR==2{print $0"\n"}')' 'BEGIN{print newheader} NR==FNR{a[\$1]=\$0;next} FNR in a{print \$0, a[FNR]}' <(tail -n+2 ${successmapping}) <(gzip -dc ${infile} | tail -n+2)"
+
+    if [ -n "$infile" ] ; then
+    :
+    else 
+      infile="-"
+    fi
+    #cmd1="awk -v newheader='$((head -n1 ${successmapping} & gzip -dc ${infile} | head -n1) | awk -vRS='\n' -vORS='' 'NR==1{print $0"\t"}; NR==2{print $0"\n"}')' 'BEGIN{print newheader} NR==FNR{a[\$1]=\$0;next} FNR in a{print \$0, a[FNR]}' <(tail -n+2 ${successmapping}) <(gzip -dc ${infile} | tail -n+2)"
+    echo "${infile}"
   else
     echo "Error: not enough params are set"
     assemble_usage 1>&2 
@@ -250,8 +265,10 @@ elif [ "$sstools_modifier" == "assemble-wrap" ] ; then
   if [ -n "$indir" ] && [ -n "$mapfile" ] &&  [ -n "$successmapping" ] && [ -n "$outdir" ] && [ -n "$inx" ] && [ -n "$log" ] ; then
     #log file stuff not implemented yet
     cmd1="${indir} ${mapfile} ${successmapping} ${inx} ${outdir} ${log}"
+    echo "${cmd1}"
   elif [ -n "$indir" ] && [ -n "$mapfile" ] &&  [ -n "$successmapping" ] && [ -n "$outdir" ] && [ -n "$inx" ] ; then
     cmd1="${indir} ${mapfile} ${successmapping} ${inx} ${outdir}"
+    echo "${cmd1}"
   else
     echo "Error: not enough params are set"
     assemblewrap_usage 1>&2 
@@ -260,6 +277,7 @@ elif [ "$sstools_modifier" == "assemble-wrap" ] ; then
 elif [ "$sstools_modifier" == "interactive" ] ; then
   if [ -n "$infile" ] && [ "$names" ] && [ "$outfile" ]; then
     cmd1="$infile $outfile $names"
+    echo "${cmd1}"
   else
     echo "Error: not enough params are set"
     interactive_usage 1>&2 
@@ -274,6 +292,7 @@ elif [ "$sstools_modifier" == "nrow" ] ; then
       cmd1="${cmd1} | tail -n+2"
     fi
     cmd1="${cmd1} | wc -l | awk '{print $1}'"
+    echo "${cmd1}"
   else
     echo "Error: not enough params are set"
     nrow_usage 1>&2 
@@ -282,8 +301,10 @@ elif [ "$sstools_modifier" == "nrow" ] ; then
 elif [ "$sstools_modifier" == "file-in-map" ] ; then
   if [ -n "$paths" ] && [ -n "$outfile" ]; then
       cmd1="function paths_in_map $paths" $infile "$inverse"
+    echo "${cmd1}"
   elif [ -n "$infile" ] && [ -n "$outfile" ] && [ -n "$indir" ]; then
       cmd1="function entries_in_map $infile" $outfile "$inverse" $indir
+    echo "${cmd1}"
   else
     echo "Error: not enough params are set"
     idexists_usage 1>&2 
@@ -295,5 +316,3 @@ else
   exit 1
 fi
 
-
-echo "$cmd1"

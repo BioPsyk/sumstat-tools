@@ -8,7 +8,6 @@ A toolbox of modularized software with the purpose of assisting a pipeline to co
 * [user-config](#user-config)
 * [structure-of-tools](#structure-of-tools)
 
-
 ## <a name="sumstat-tools-intro"></a>sumstat-tools-intro
 Tools for curating and filtering sumstats
 
@@ -121,7 +120,7 @@ Seems like all files here are ok. In case a file is marked as badly gzipped, the
 #### Test if all rows have same number of tab separated fields
 
 ```shell
-# Only checks for tab as separator
+# Only checks for tab as separator, and that all rows have same number of fields
 sstools-raw tab-sep -d ${DATA_DIR}
 ```
 
@@ -163,13 +162,12 @@ seems like one file only has 1 field. That is probably wrong, let us a try to co
 badfile2="TrynkaG_2011_22057235.txt.gz"
 zcat ${DATA_DIR}/${badfile2} | head | awk 'BEGIN {FS="\t"}; {print NF }'
 
-#analyze the separator composition
+#analyze the separator composition (the new-sep function needs to be re-designed to improve how the replacing works, it is not 100% correct how FS and OFS is used in the underlying awk-script, but is still useful and therefore keept for now)
 zcat ${DATA_DIR}/${badfile2} | sstools-raw new-sep -t "=tab=" -w "_" | head
-#zcat ${DATA_DIR}/${badfile2} | head | sstools-raw what-sep
 
-#replace tabs with empty string, then replace whitespace with \t, use -j flag to join consecutive delimiters (and skip first column)
-zcat ${DATA_DIR}/${badfile2} | sstools-raw new-sep -t "" -w "\t" -j | cut -f1 --complement | head
-zcat ${DATA_DIR}/${badfile2} | sstools-raw new-sep -t "" -w "\t" -j | cut -f1 --complement | gzip -c > ${OUT_DIR0}/${badfile2}
+#This is a very complicated field separation and needs special treatment.
+zcat ${DATA_DIR}/${badfile2} | awk -vFS="" -vOFS="" '{gsub(/[[:space:]]/,"¬"); print $0}' |  awk -vFS="¬+" -vOFS="\t" '{for(k=2; k <= NF-1; k++){printf "%s%s", $(k), OFS } print ""}' | awk 'BEGIN {FS="\t"}; {print NF }' | head
+zcat ${DATA_DIR}/${badfile2} | awk -vFS="" -vOFS="" '{gsub(/[[:space:]]/,"¬"); print $0}' |  awk -vFS="¬+" -vOFS="\t" '{for(k=2; k <= NF-1; k++){printf "%s%s", $(k), OFS } print ""}' | gzip -c > ${OUT_DIR0}/${badfile2}
 ```
 
 #### copy over all files that we did not change
@@ -508,8 +506,13 @@ infile1="${DATA_DIR}/cad.add.160614.website.txt.gz"
 # Specify path to reference db
 REF_DB_FILE="out/genome_location_information/successfull_mappings/GRCh38/remaining_cad.add.160614.website.txt"
 
-sstools-utils assemble -f $infile1 -g $REF_DB_FILE | head
+sstools-utils assemble -f $infile1   -g $REF_DB_FILE |  head
 
+zcat $infile1 |  sstools-utils assemble  -g $REF_DB_FILE |  head
+
+zcat $infile1 | ad-hoc-do -c -p | sstools-utils assemble  -g $REF_DB_FILE |  head
+
+zcat $infile1 | sstools-utils ad-hoc-do -k "effect_allele|noneffect_allele" | head
 
 ```
 
