@@ -506,13 +506,17 @@ infile1="${DATA_DIR}/cad.add.160614.website.txt.gz"
 # Specify path to reference db
 REF_DB_FILE="out/genome_location_information/successfull_mappings/GRCh38/remaining_cad.add.160614.website.txt"
 
-sstools-utils assemble -f $infile1   -g $REF_DB_FILE |  head
-
+# Assemble oiginal file with REF_DB_FILE
 zcat $infile1 |  sstools-utils assemble  -g $REF_DB_FILE |  head
 
-zcat $infile1 | ad-hoc-do -c -p | sstools-utils assemble  -g $REF_DB_FILE |  head
-
+# Select and convert, to reduce RAM and get correct format
 zcat $infile1 | sstools-utils ad-hoc-do -k "effect_allele|noneffect_allele" | head
+
+# Combine select and reduce with assemble (TODO: optimize using join on sorted files )
+zcat $infile1 | sstools-utils ad-hoc-do -k "effect_allele|noneffect_allele" |  sstools-utils assemble  -g $REF_DB_FILE | head
+
+# Use as input to sstools-ealle
+zcat $infile1 | sstools-utils ad-hoc-do -k "effect_allele|noneffect_allele" |  sstools-utils assemble  -g $REF_DB_FILE | sstools-ealle modifier -a "a1=1, a2=2,d1=4,d2=5,inx=3"
 
 ```
 
