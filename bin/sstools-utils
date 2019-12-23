@@ -35,9 +35,27 @@ if [ $RESULT -eq 0 ]; then
     if [ "$sstools_modifier" == "ad-hoc" ]; then
       eval $VAR_RETURN
     elif [ "$sstools_modifier" == "ad-hoc-do" ]; then
-      eval $VAR_RETURN
+      VAR_RETURN=(${VAR_RETURN})
+      infile="${VAR_RETURN[0]}"
+      SSTOOLS_ADHOCDO_FUNCTIONS_ARRANGE="${VAR_RETURN[1]}"
+      specialfunction="${VAR_RETURN[2]}"
+      newcols="${VAR_RETURN[3]}"
+      cmd="gawk -f ${SSTOOLS_ADHOCDO_FUNCTIONS_ARRANGE} -v mapcols='${specialfunction}' -v newcols='${newcols}'"
+      readoption "${infile}" | eval "${cmd}"
+
     elif [ "$sstools_modifier" == "assemble" ]; then
-      eval $VAR_RETURN
+      #eval $VAR_RETURN
+      VAR_RETURN=(${VAR_RETURN})
+      infile="${VAR_RETURN[0]}"
+      successmapping="${VAR_RETURN[1]}"
+      
+      echo ${infile}
+      echo ${successmapping}
+      #cmd="awk -v newheader='$((head -n1 ${successmapping} & gzip -dc ${infile} | head -n1) | awk -vRS='\n' -vORS='' 'NR==1{print $0"\t"}; NR==2{print $0"\n"}')' 'BEGIN{print newheader} NR==FNR{a[\$1]=\$0;next} FNR in a{print \$0, a[FNR]}' <(tail -n+2 ${successmapping}) <(gzip -dc ${infile} | tail -n+2)"
+     # newheader="hej"
+     # cmd="awk 'NR==FNR{a[\$1]=\$0;next} FNR in a{print \$0, a[FNR]}' <(tail -n+2 ${successmapping}) <(gzip -dc ${infile} | tail -n+2)"
+     # readoption "${infile}" | eval "${cmd}"
+
     elif [ "$sstools_modifier" == "assemble-wrap" ]; then
       VAR_RETURN=(${VAR_RETURN})
       #echo ${VAR_RETURN[@]}
