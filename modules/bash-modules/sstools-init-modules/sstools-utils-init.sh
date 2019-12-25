@@ -74,7 +74,7 @@ case "${paramarray[0]}" in
     ;;
   assemble)
     sstools_modifier=${paramarray[0]}
-    getoptsstring=":hn:f:g:c:"
+    getoptsstring=":hn:f:g:c:j"
     shift # Remove `install` from the argument list
     ;;
   assemble-wrap)
@@ -109,6 +109,7 @@ paramarray=("${paramarray[@]:1}")
 
 #set default params
 separator="\t"
+unixjoin=false
 
 # starting getops with :, puts the checking in silent mode for errors.
 while getopts "${getoptsstring}" opt "${paramarray[@]}"; do
@@ -140,6 +141,9 @@ while getopts "${getoptsstring}" opt "${paramarray[@]}"; do
       ;;
     s )
       separator="$OPTARG"
+      ;;
+    j )
+      unixjoin=true
       ;;
     n )
       if [ "$sstools_modifier" == "ad-hoc" ]; then
@@ -255,7 +259,7 @@ elif [ "$sstools_modifier" == "assemble" ] ; then
       infile="-"
     fi
     #cmd1="awk -v newheader='$((head -n1 ${successmapping} & gzip -dc ${infile} | head -n1) | awk -vRS='\n' -vORS='' 'NR==1{print $0"\t"}; NR==2{print $0"\n"}')' 'BEGIN{print newheader} NR==FNR{a[\$1]=\$0;next} FNR in a{print \$0, a[FNR]}' <(tail -n+2 ${successmapping}) <(gzip -dc ${infile} | tail -n+2)"
-    echo "${infile} ${successmapping}"
+    echo "${infile} ${successmapping} ${unixjoin}"
   else
     echo "Error: not enough params are set"
     assemble_usage 1>&2 

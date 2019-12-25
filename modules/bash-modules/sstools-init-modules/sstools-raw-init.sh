@@ -20,6 +20,16 @@ function tabsep_usage(){
       echo "    sstools-gb tab-sep -h                      (Display this help message)"
       echo " "
 }
+function addindex_usage(){
+      echo "Usage:"
+      echo "    sstools-gb add-index -h                      (Display this help message)"
+      echo " "
+}
+function sortindex_usage(){
+      echo "Usage:"
+      echo "    sstools-gb sort-index -h                      (Display this help message)"
+      echo " "
+}
 function newheader_usage(){
       echo "Usage:"
       echo "    sstools-gb new-header -h                      (Display this help message)"
@@ -48,6 +58,16 @@ case "${1}" in
     getoptsstring=":hf:t:w:j"
     shift 
     ;;
+  add-index)
+    sstools_modifier=${1}
+    getoptsstring=":hf:"
+    shift 
+    ;;
+  sort-index)
+    sstools_modifier=${1}
+    getoptsstring=":hf:"
+    shift 
+    ;;
   *)
     echo "you have to specify a modifier, see below for example"
     general_usage 1>&2
@@ -62,6 +82,12 @@ while getopts "${getoptsstring}" opt "$@"; do
     h )
       if [ "$sstools_modifier" == "tab-sep" ]; then
         tabsep_usage 1>&2
+      fi
+      if [ "$sstools_modifier" == "add-index" ]; then
+        addindex_usage 1>&2
+      fi
+      if [ "$sstools_modifier" == "sort-index" ]; then
+        sortindex_usage 1>&2
       fi
       if [ "$sstools_modifier" == "new-sep" ]; then
         newsep_usage 1>&2
@@ -122,6 +148,34 @@ elif [ "$sstools_modifier" == "new-header" ] ; then
   else
     echo "Error: all required params have to be set, input file missing"
     newheader_usage 1>&2 
+    exit 1
+  echo "${toreturn}"
+  fi
+elif [ "$sstools_modifier" == "add-index" ] ; then
+  if [ -n "$infile_path" ] ; then
+  :
+  else 
+    infile_path="-"
+  fi
+  if [ -n "$infile_path" ] ; then
+    printf "%s\n" ${infile_path}
+  else
+    echo "Error: all required params have to be set, input file missing"
+    addindex_usage 1>&2 
+    exit 1
+  echo "${toreturn}"
+  fi
+elif [ "$sstools_modifier" == "sort-index" ] ; then
+  if [ -n "$infile_path" ] ; then
+  :
+  else 
+    infile_path="-"
+  fi
+  if [ -n "$infile_path" ] ; then
+    printf "%s¬%s\n" ${infile_path} ${inx}
+  else
+    echo "Error: all required params have to be set, input file missing"
+    sortindex_usage 1>&2 
     exit 1
   echo "${toreturn}"
   fi

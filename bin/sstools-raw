@@ -50,22 +50,20 @@ if [ $RESULT -eq 0 ]; then
       #echo "${ARGS_TO_FUNC[@]}"
       CHECK_NUM_FIELDS_WRAPPER="${SSTOOLS_ROOT_ENV}/modules/bash-modules/check-number-of-fields-wrapper.sh"
       sh ${CHECK_NUM_FIELDS_WRAPPER} "${ARGS_TO_FUNC[@]}"
+    elif [ "$sstools_modifier" == "add-index" ]; then
+     #echo "${ARGS_TO_FUNC[@]}"
+      readoption "${ARGS_TO_FUNC[0]}" | awk '{ print FNR-1 "\t" $0 }'
+    elif [ "$sstools_modifier" == "sort-index" ]; then
+      readoption "${ARGS_TO_FUNC[0]}" | sort -k 1
     elif [ "$sstools_modifier" == "new-header" ]; then
       #echo "${ARGS_TO_FUNC[@]}"
       AWK_CHANGE_HEADER="${SSTOOLS_ROOT_ENV}/modules/awk-modules/change-header-to-passed-argument.awk"
       cmd="awk -f ${AWK_CHANGE_HEADER} -v newHeader='${ARGS_TO_FUNC[1]}'"
       readoption "${ARGS_TO_FUNC[0]}" | eval "${cmd}"
     elif [ "$sstools_modifier" == "new-sep" ]; then
-      #echo "${ARGS_TO_FUNC[@]}"
-      #echo "${ARGS_TO_FUNC[0]}"
-      #echo "${ARGS_TO_FUNC[1]}"
-      #echo "${ARGS_TO_FUNC[2]}"
-      #echo "${ARGS_TO_FUNC[3]}"
       AWK_CHANGE_SEPARATOR="${SSTOOLS_ROOT_ENV}/modules/awk-modules/change-separator.awk"
       cmd1="awk -f ${AWK_CHANGE_SEPARATOR} -vFS='\t${ARGS_TO_FUNC[3]}' -vOFS='${ARGS_TO_FUNC[1]}' "
       cmd2="awk -f ${AWK_CHANGE_SEPARATOR} -vFS='[ ]${ARGS_TO_FUNC[3]}' -vOFS='${ARGS_TO_FUNC[2]}' "
-      #readoption "${ARGS_TO_FUNC[0]}" 
-      #readoption "${ARGS_TO_FUNC[0]}" | eval "${cmd1}" 
       readoption "${ARGS_TO_FUNC[0]}" | eval "${cmd1}" | eval "${cmd2}"
     else
       echo "no modifier" 1>&2
