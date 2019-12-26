@@ -2,7 +2,7 @@
 #whatever the input make it array
 paramarray=($@)
 
-unset sstools_modifier location names beautify infile specialfunction successmapping indir mapfile log outdir inx 
+unset sstools_modifier location names beautify infile specialfunction successmapping indir mapfile log outdir inx unixjoin
 
 #set default outfile separator (infile is made as tab-sep)
 separator="\t"
