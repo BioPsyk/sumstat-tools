@@ -79,9 +79,11 @@ DATA_DIR="data/gwas-summary-stats"
 
 #Specify path to outfolder
 OUT_DIR0="out/raw_format_ok"
+OUT_DIR00="out/raw_format_index_sorted"
 
 # Make outfolder if it does not already exist
 mkdir -p ${OUT_DIR0}
+mkdir -p ${OUT_DIR00}
 ```
 
 #### Test if files are gzipped correctly
@@ -186,7 +188,19 @@ for file in ${DATA_DIR}/*; do
 done
 ```
 
-From here we have correctly formatted files and are therefore prepared to use more automatic functionality in following steps.
+From here we have correctly formatted files and are therefore prepared to use more automatic functionality in following steps. 
+
+To further optimize the following algorithms, we can add an index to the raw file, and sort it. 
+
+```shell
+#Add index to all files and sort on index
+for file in ${OUT_DIR0}/*; do
+  if [ -f "${OUT_DIR0}/$(basename ${file})" ]; then
+    echo "$file"
+    zcat ${file} | sstools-raw add-index | sstools-raw sort-index | gzip -c >  ${OUT_DIR00}/$(basename ${file})
+  fi
+done
+```
 
 ## <a name="sstools-gb"></a>sstools-gb
 
@@ -515,11 +529,13 @@ zcat $infile1 | sstools-utils ad-hoc-do -k "effect_allele|noneffect_allele" | he
 # Combine select and reduce with assemble (TODO: optimize using join on sorted files )
 zcat $infile1 | sstools-utils ad-hoc-do -k "effect_allele|noneffect_allele" |  sstools-utils assemble  -g $REF_DB_FILE | head
 
-# Use as input to sstools-ealle
-zcat $infile1 | sstools-utils ad-hoc-do -k "effect_allele|noneffect_allele" |  sstools-utils assemble  -g $REF_DB_FILE | sstools-ealle modifier -a "a1=1, a2=2,d1=4,d2=5,inx=3"
+# Use as input to sstools-ealle (assemble command has a delay as it needs to store first file in memory, needs optimization)
+zcat $infile1 | sstools-utils ad-hoc-do -k "effect_allele|noneffect_allele" |  sstools-utils assemble  -g $REF_DB_FILE | sstools-eallele modifier -k "a1=1,a2=2,d1=7,d2=8,inx=3" | head
 
+# If both the raw infile and the sucessfull mapping have a sorted index column, they can be merged mush faster and less memory consuming using the join command.
+join -1 1 -2 1 - <(tail -n+2 $REF_DB_FILE)
 ```
-
+In the outout from "sstools-eallele modifier" all lines not fulfilling conditions to calculate modifier are printed to stderr. 
 
 ## <a name="sstools-stats"></a>sstools-stats
 
