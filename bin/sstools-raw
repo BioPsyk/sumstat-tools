@@ -54,7 +54,7 @@ if [ $RESULT -eq 0 ]; then
      #echo "${ARGS_TO_FUNC[@]}"
       readoption "${ARGS_TO_FUNC[0]}" | awk '{ print FNR-1 "\t" $0 }'
     elif [ "$sstools_modifier" == "sort-index" ]; then
-      readoption "${ARGS_TO_FUNC[0]}" | sort -k 1
+      readoption "${ARGS_TO_FUNC[0]}" | LC_ALL=C sort -k 1
     elif [ "$sstools_modifier" == "new-header" ]; then
       #echo "${ARGS_TO_FUNC[@]}"
       AWK_CHANGE_HEADER="${SSTOOLS_ROOT_ENV}/modules/awk-modules/change-header-to-passed-argument.awk"

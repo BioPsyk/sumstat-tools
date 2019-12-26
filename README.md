@@ -79,11 +79,11 @@ DATA_DIR="data/gwas-summary-stats"
 
 #Specify path to outfolder
 OUT_DIR0="out/raw_format_ok"
-OUT_DIR00="out/raw_format_index_sorted"
+OUT_DIR0_sorted_index="out/raw_format_sorted_index"
 
 # Make outfolder if it does not already exist
 mkdir -p ${OUT_DIR0}
-mkdir -p ${OUT_DIR00}
+mkdir -p ${OUT_DIR0_sorted_index}
 ```
 
 #### Test if files are gzipped correctly
@@ -195,10 +195,8 @@ To further optimize the following algorithms, we can add an index to the raw fil
 ```shell
 #Add index to all files and sort on index
 for file in ${OUT_DIR0}/*; do
-  if [ -f "${OUT_DIR0}/$(basename ${file})" ]; then
     echo "$file"
-    zcat ${file} | sstools-raw add-index | sstools-raw sort-index | gzip -c >  ${OUT_DIR00}/$(basename ${file})
-  fi
+    zcat ${file} | sstools-raw add-index | sstools-raw sort-index | gzip -c >  ${OUT_DIR0_sorted_index}/$(basename ${file})
 done
 ```
 
@@ -224,10 +222,12 @@ DATA_DIR="data/gwas-summary-stats"
 #Specify path to outfolder
 OUT_DIR1="out/mapping_information"
 OUT_DIR2="out/genome_location_information"
+OUT_DIR2_sorted_ix="out/genome_location_information/index_sorted"
 
 # Make outfolder if it does not already exist
 mkdir -p ${OUT_DIR1}
 mkdir -p ${OUT_DIR2}
+mkdir -p ${OUT_DIR2_ix}
 ```
 
 #### One file simplest example
@@ -429,7 +429,17 @@ inx=(1 2 3)
 for j in "${inx[@]}"; do \
 sstools-utils assemble-wrap -d ${DATA_DIR} -m ${MAPFILE_GWAS} -g $mapdir -o $qcddir -i ${j}
 done
+```
 
+However, sometimes it can worth to sort files on index for a little faster assembly.
+
+```shell
+# sort and index
+mkdir -p ${OUT_DIR2_ix}/successfull_mappings/GRCh37
+for file in ${OUT_DIR2}/successfull_mappings/GRCh37/*; do
+    echo "$file"
+    cat ${file} | sstools-raw sort-index  >  ${OUT_DIR2_sorted_ix}/successfull_mappings/GRCh37/$(basename ${file})
+done
 ```
 
 Now the tutorial for sstools-gb has come to an end.
@@ -501,7 +511,8 @@ The reference database decides which allele is the new common effect allele to u
 DATA_DIR="data/gwas-summary-stats"
 
 # Specify path to reference db
-REF_DB_DIR="out/genome_location_information/successfull_mappings/GRCh38"
+REF_DB_DIR="${OUT_DIR2_sorted_ix}/successfull_mappings/GRCh37"
+REF_DB_DIR_sorted_ix="${OUT_DIR2_sorted_ix}/successfull_mappings/GRCh37"
 
 # Specify path to outfolder
 OUT_DIR3="out/common_effect_allele"
@@ -526,14 +537,16 @@ zcat $infile1 |  sstools-utils assemble  -g $REF_DB_FILE |  head
 # Select and convert, to reduce RAM and get correct format
 zcat $infile1 | sstools-utils ad-hoc-do -k "effect_allele|noneffect_allele" | head
 
-# Combine select and reduce with assemble (TODO: optimize using join on sorted files )
+# Combine select and reduce with assemble
 zcat $infile1 | sstools-utils ad-hoc-do -k "effect_allele|noneffect_allele" |  sstools-utils assemble  -g $REF_DB_FILE | head
 
 # Use as input to sstools-ealle (assemble command has a delay as it needs to store first file in memory, needs optimization)
 zcat $infile1 | sstools-utils ad-hoc-do -k "effect_allele|noneffect_allele" |  sstools-utils assemble  -g $REF_DB_FILE | sstools-eallele modifier -k "a1=1,a2=2,d1=7,d2=8,inx=3" | head
 
 # If both the raw infile and the sucessfull mapping have a sorted index column, they can be merged mush faster and less memory consuming using the join command.
-join -1 1 -2 1 - <(tail -n+2 $REF_DB_FILE)
+infile1_sorted_ix="${OUT_DIR0_sorted_index}/cad.add.160614.website.txt.gz"
+zcat $infile1_sorted_ix | sstools-utils ad-hoc-do -k "effect_allele|noneffect_allele" |  sstools-utils assemble  -g $REF_DB_FILE_sorted_ix -j | sstools-eallele modifier -k "a1=1,a2=2,d1=7,d2=8,inx=3" | head
+
 ```
 In the outout from "sstools-eallele modifier" all lines not fulfilling conditions to calculate modifier are printed to stderr. 
 
@@ -616,4 +629,4 @@ zcat All_20180418_no_multi_allelic.gz | awk '($3==".") {next;} {OFS="\t";print $
 
 
 ```
-This file is later going to be used as input when correcting alleles.
+This file is later going to be used as input when correcting alleles.ed as input when correcting alleles. as input when correcting alleles.ed as input when correcting alleles.
