@@ -24,7 +24,7 @@ function modifier_usage(){
 case "${paramarray[0]}" in
   modifier)
     sstools_modifier=${paramarray[0]}
-    getoptsstring=":h"
+    getoptsstring=":hf:k:"
     shift # Remove `install` from the argument list
     ;;
   *)
@@ -70,9 +70,13 @@ done
 
 # check that all required arguments for the selected modifier is set
 if [ "$sstools_modifier" == "modifier" ] ; then
-  if [ $whichinx ] ; then
-
-    echo "${infile} ${whichinx}"
+  if [ $rinx ] ; then
+    if [ -n "$infile" ] ; then
+    :
+    else 
+      infile="-"
+    fi
+    echo "${infile} ${rinx}"
   else
     echo "Error: not enough params are set"
     adhocdo_usage 1>&2 

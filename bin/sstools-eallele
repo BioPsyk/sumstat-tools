@@ -22,7 +22,7 @@ source ${SSTOOLS_FUNCTIONS_LIBRARY}/sstools-pipe-helpers.sh
 source ${SSTOOLS_FUNCTIONS_LIBRARY}/sstools-mapfiles-helpers.sh
 
 #${SSTOOLS_ROOT_ENV}/modules/bash-modules/sstools-init-modules/sstools-gb-init.sh "$( IFS=$' '; echo "${userarr[*]}" )"
-VAR_RETURN=$(${SSTOOLS_ROOT_ENV}/modules/bash-modules/sstools-init-modules/sstools-utils-init.sh "$( IFS=$' '; echo "${userarr[*]}" )")
+VAR_RETURN=$(${SSTOOLS_ROOT_ENV}/modules/bash-modules/sstools-init-modules/sstools-eallele-init.sh "$( IFS=$' '; echo "${userarr[*]}" )")
 RESULT=$?
 #If the above (most recent command) was successful, then 
 if [ $RESULT -eq 0 ]; then
@@ -34,11 +34,10 @@ if [ $RESULT -eq 0 ]; then
   else
     if [ "$sstools_modifier" == "modifier" ]; then
       VAR_RETURN=(${VAR_RETURN})
-      echo "${VAR_RETURN[*]}"
-      #infile="${VAR_RETURN[0]}"
-      #cmd="gawk -f ${SSTOOLS_ADHOCDO_FUNCTIONS_ARRANGE} -v mapcols='${specialfunction}' -v newcols='${newcols}'"
-      #readoption "${infile}" | eval "${cmd}"
+      infile="${VAR_RETURN[0]}"
+      readoption "${infile}" | ${SSTOOLS_RSOFT}/Rscript ${SSTOOLS_EALLELE_MODIFIER_RSCRIPT} ${SSTOOLS_R_HELPERS} "${VAR_RETURN[1]}" 
     elif [ "$sstools_modifier" == "placeholder" ]; then
+      echo "hej"
     else
       echo "no modifier" 1>&2
     fi
