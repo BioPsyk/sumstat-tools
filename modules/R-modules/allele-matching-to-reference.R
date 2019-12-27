@@ -1,5 +1,7 @@
 args = commandArgs(trailingOnly=TRUE)
 
+#right now there is no pipe-support to use for example 'head' after this script, which will throw error. 
+
 Rhelpers=args[1]
 whichinx=args[2]
 #whichinx="a1=1,a2=2,d1=4,d2=5"
@@ -9,6 +11,8 @@ args <- unlist(lapply(spl2,FUN=function(x){x[1]}))
 vals <- as.integer(unlist(lapply(spl2,FUN=function(x){x[2]})))
 names(vals) <- args
 cix=c(vals[["a1"]], vals[["a2"]], vals[["d1"]], vals[["d2"]],vals[["inx"]])
+
+#write(paste(cix, sep="\t"), stderr())
 
 source(paste(Rhelpers,"/allele-qc.R",sep=""))
 
@@ -28,9 +32,10 @@ while(length(line <- readLines(input, n=1)) > 0){
     next
   }
 
-  # Check for nucleotide not in A, T, G or C
-  tf <- (!(el[1] %in% c("A","T","G","C"))) | (!(el[2] %in% c("A","T","G","C"))) | (!(el[3] %in% c("A","T","G","C"))) | (!(el[4] %in% c("A","T","G","C")))
-  if(tf){
+  # Check for that all nucleotides are  in A, T, G or C
+  tf <- (el[1] %in% c("A","T","G","C")) & (el[2] %in% c("A","T","G","C")) & (el[3] %in% c("A","T","G","C")) & ((el[4] %in% c("A","T","G","C")))
+  if(!tf){
+    #write(paste(paste(el, collapse="\t"), "notGCTA", collapse="\t" ), stderr())
     write(paste(el[5], "notGCTA", sep="\t"), stderr())
     next
   }
@@ -76,6 +81,6 @@ while(length(line <- readLines(input, n=1)) > 0){
   em <- .effect_modifier(el[1], B1, el[3])
   
   # write to stdout the line that survived all filters and got a modifier
-  write(paste(el[5], el[3], el[4], em, sep="\t"), stdout())
+  cat(el[5], el[3], el[4], em, "\n", append=FALSE, sep="\t")
 }
 
