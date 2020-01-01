@@ -20,6 +20,7 @@ source ${SSTOOLS_ROOT_ENV}/config/config-user.conf
 
 source ${SSTOOLS_FUNCTIONS_LIBRARY}/sstools-pipe-helpers.sh
 source ${SSTOOLS_FUNCTIONS_LIBRARY}/sstools-mapfiles-helpers.sh
+unset R_HOME
 
 #${SSTOOLS_ROOT_ENV}/modules/bash-modules/sstools-init-modules/sstools-gb-init.sh "$( IFS=$' '; echo "${userarr[*]}" )"
 VAR_RETURN=$(${SSTOOLS_ROOT_ENV}/modules/bash-modules/sstools-init-modules/sstools-eallele-init.sh "$( IFS=$' '; echo "${userarr[*]}" )")
