@@ -222,12 +222,12 @@ DATA_DIR="data/gwas-summary-stats"
 #Specify path to outfolder
 OUT_DIR1="out/mapping_information"
 OUT_DIR2="out/genome_location_information"
-OUT_DIR2_sorted_ix="out/genome_location_information/index_sorted"
+OUT_DIR2_sorted_index="${OUT_DIR2}/index_sorted"
 
 # Make outfolder if it does not already exist
 mkdir -p ${OUT_DIR1}
 mkdir -p ${OUT_DIR2}
-mkdir -p ${OUT_DIR2_ix}
+mkdir -p ${OUT_DIR2_sorted_index}
 ```
 
 #### One file simplest example
@@ -434,11 +434,11 @@ done
 However, sometimes it can worth to sort files on index for a little faster assembly.
 
 ```shell
-# sort and index
+# sort, index and rename first header column to '0' 
 mkdir -p ${OUT_DIR2_ix}/successfull_mappings/GRCh37
 for file in ${OUT_DIR2}/successfull_mappings/GRCh37/*; do
     echo "$file"
-    cat ${file} | sstools-raw sort-index  >  ${OUT_DIR2_sorted_ix}/successfull_mappings/GRCh37/$(basename ${file})
+    cat ${file} |  awk -vOFS="\t" 'NR==1{$1="0"} {print $0}' | sstools-raw sort-index  >  ${OUT_DIR2_sorted_index}/successfull_mappings/GRCh37/$(basename ${file})
 done
 ```
 
@@ -511,8 +511,8 @@ The reference database decides which allele is the new common effect allele to u
 DATA_DIR="data/gwas-summary-stats"
 
 # Specify path to reference db
-REF_DB_DIR="${OUT_DIR2_sorted_ix}/successfull_mappings/GRCh37"
-REF_DB_DIR_sorted_ix="${OUT_DIR2_sorted_ix}/successfull_mappings/GRCh37"
+REF_DB_DIR="${OUT_DIR2}/successfull_mappings/GRCh37"
+REF_DB_DIR_sorted_index="${OUT_DIR2_sorted_index}/successfull_mappings/GRCh37"
 
 # Specify path to outfolder
 OUT_DIR3="out/common_effect_allele"
@@ -529,7 +529,7 @@ mkdir -p ${OUT_DIR3}
 infile1="${DATA_DIR}/cad.add.160614.website.txt.gz"
 
 # Specify path to reference db
-REF_DB_FILE="out/genome_location_information/successfull_mappings/GRCh38/remaining_cad.add.160614.website.txt"
+REF_DB_FILE="${REF_DB_DIR}/remaining_cad.add.160614.website.txt"
 
 # Assemble oiginal file with REF_DB_FILE
 zcat $infile1 |  sstools-utils assemble  -g $REF_DB_FILE |  head
@@ -540,15 +540,15 @@ zcat $infile1 | sstools-utils ad-hoc-do -k "effect_allele|noneffect_allele" | he
 # Combine select and reduce with assemble
 zcat $infile1 | sstools-utils ad-hoc-do -k "effect_allele|noneffect_allele" |  sstools-utils assemble  -g $REF_DB_FILE | head
 
-# Use as input to sstools-ealle (assemble command has a delay as it needs to store first file in memory, needs optimization)
-zcat $infile1 | sstools-utils ad-hoc-do -k "effect_allele|noneffect_allele" |  sstools-utils assemble  -g $REF_DB_FILE | sstools-eallele modifier -k "a1=1,a2=2,d1=7,d2=8,inx=3" | head
+# Use as input to sstools-ealle (assemble command has a delay as it needs to store first file in memory, can be optimized using sort and join)
+zcat $infile1 | sstools-utils ad-hoc-do -k "effect_allele|noneffect_allele" |  sstools-utils assemble  -g $REF_DB_FILE | head | sstools-eallele modifier -k "a1=1,a2=2,d1=7,d2=8,inx=3"
 
 # If both the raw infile and the sucessfull mapping have a sorted index column, they can be merged mush faster and less memory consuming using the join command.
-infile1_sorted_ix="${OUT_DIR0_sorted_index}/cad.add.160614.website.txt.gz"
-zcat $infile1_sorted_ix | sstools-utils ad-hoc-do -k "effect_allele|noneffect_allele" |  sstools-utils assemble  -g $REF_DB_FILE_sorted_ix -j | sstools-eallele modifier -k "a1=1,a2=2,d1=7,d2=8,inx=3" | head
-
+infile1_six="${OUT_DIR0_sorted_index}/cad.add.160614.website.txt.gz"
+REF_DB_FILE_six="${REF_DB_DIR_sorted_index}/remaining_cad.add.160614.website.txt"
+zcat $infile1_six | sstools-utils ad-hoc-do -k "0|effect_allele|noneffect_allele" |  sstools-utils assemble  -g $REF_DB_FILE_six -j | head | sstools-eallele modifier -k "a1=2,a2=3,d1=8,d2=9,inx=1" > ${OUT_DIR3}/refallele_cad.add.160614.website.txt
 ```
-In the outout from "sstools-eallele modifier" all lines not fulfilling conditions to calculate modifier are printed to stderr. 
+In the outout from "sstools-eallele modifier" all lines not fulfilling conditions to calculate modifier are printed to stderr. This output will be very usefull both to get the common ref-allele and the correct effect-size modifier to get the corresponding direction of effect. 
 
 ## <a name="sstools-stats"></a>sstools-stats
 
