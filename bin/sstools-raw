@@ -21,21 +21,8 @@ source ${SSTOOLS_ROOT_ENV}/config/config-user.conf
 source ${SSTOOLS_FUNCTIONS_LIBRARY}/sstools-pipe-helpers.sh
 source ${SSTOOLS_FUNCTIONS_LIBRARY}/sstools-mapfiles-helpers.sh
 
-#echo "$@" 1>&2
-#echo "$0" 1>&2
-#echo "$1" 1>&2
-#echo "$2" 1>&2
-#echo "$3" 1>&2
-#echo "$4" 1>&2
-#echo "----" 1>&2
-
 #echo "$( IFS=$' '; echo "${userarr[*]}" )" 
-#${SSTOOLS_ROOT_ENV}/modules/bash-modules/sstools-init-modules/sstools-gb-init.sh "$( IFS=$' '; echo "${userarr[*]}" )"
 IFS='¬' read -r -a ARGS_TO_FUNC <<< $(${SSTOOLS_ROOT_ENV}/modules/bash-modules/sstools-init-modules/sstools-raw-init.sh "$@") 
-#echo "${ARGS_TO_FUNC[@]}"
-#ARGS_TO_FUNC=($(${SSTOOLS_ROOT_ENV}/modules/bash-modules/sstools-init-modules/sstools-raw-init.sh "$( IFS=$' '; echo "${userarr[*]}" )")) 
-#echo "$@"
-#ARGS_TO_FUNC=($(${SSTOOLS_ROOT_ENV}/modules/bash-modules/sstools-init-modules/sstools-raw-init.sh $@)) 
 #echo "${ARGS_TO_FUNC[@]}"
 RESULT=$?
 #If the above (most recent command) was successful, then 

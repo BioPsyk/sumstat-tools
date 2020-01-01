@@ -562,47 +562,53 @@ In GWAS sumstat files we can have different types of test statistics, which can 
 - P-value
 - Standard error
 
-To make things worse, we sometimes have values in log form, and sometimes not. The most problematic part is however that the naming of each of these statistics is very variable, so a lot of manual work of mapping of where each statistic is located in each file.
-
-Therefore again we will have to create a mapfile, which will call awk scripts to perform the calculations we need. A benefit with using awk is that it is very fast, and in this pipeline we won't have to create any intermediate files for this maneuvor, but instead use this mapfile for the final assembly in step 4. Of course we will also show some custom examples of how we can call the functionality.
+To make things worse, we sometimes have values in log form, and sometimes not. The most problematic part is however that the naming of each of these statistics is very variable, so a lot of manual work of mapping of where each statistic is located in each file..
 
 Using example data coming with the project we have designed this example to be runnnable just by starting from the projects root folder, therefore place yourself in the project root folder, and set the paths to the following (preferably the absolute paths):
 
 ```shell
-#Specify path to this pipelines modules
-PM="modules"
+# Mapfile with statistics
+MAPFILE_GWAS_3="${OUT_DIR1}/mapfile-statistics.txt"
 
-#Specify path to working directory
-WD="test/testdata/testresults"
-
-#Specify path to Step1 summary statistics files
-SSD1="tests/testdata/01_format_corrected_sumstats"
-
-#Specify path to folder for all transformed files
-SSD_AGI="tests/testdata/02_genomic_information_to_add"
-#make folder if it does not already exist
-mkdir ${SSD_AGI}
+#Raw data directory
+DATA_DIR="data/gwas-summary-stats"
 
 ```
 
-#### One file map
-The larger plan is to create a map file including all sumstat files, but for the purpose of this example, we will first show the workflow for only one file.
+#### One file statistics extraction
+
+Similar to how we treat sumstat data for genome build information we need to inspect and select an appropriate conversion to a common statistics variable.
 
 ```shell
-#select file we are about to add genomic informaiton to
-selfile="AD_sumstats_Jansenetal.txt.gz"
+# Select file we are about to lookup the genomic build information for
+infile1="${DATA_DIR}/cad.add.160614.website.txt.gz"
 
-#look at the header to see available field names
-zcat ${SSD1}/$selfile | head -n3
+# Look at the header to see available field names
+zcat $infile1 | head -n3
+
+```
+The file has both chromosome and basepair (bp) information, but is missing rsid. We make a quick test which coordinate build the coordinates belongs to (from the header it seems like hg19, but we run this script to be certain). Use 'sstools-gb which' to investigate this.
+
+```shell
+# Declare params
+beta_field_name="beta"
+zscore_field_name="beta"
+
+# Use beta in output
+sstools-utils ad-hoc-do -f $infile1 -k "${beta_field_name}" | head
+```
 
 ```
 
 
 ## <a name="sstools-utils"></a>sstools-utils
 
-There are many shared functionalities within this software suit, which we have tried to collect in the sstools-utils toolkit. All examples of usage is described within the other sections.
+There are many shared functionalities within this software suit, which we have tried to collect in the sstools-utils toolkit. Many examples of its usage is described within the previous sections. Here we try to focus on describing how to effectively merge output files of interest from the previous sections.
+
+
 
 ## <a name="extra"></a>extra
+This is code not necessary for the sstools workflow, but could be useful to know to add other features to the pipeline.
 
 #### prepare dbsnp file
 To be able to correct the alleles using the dbSNP file, it has to be downloaded and filter for multi-allelic variants.
@@ -618,6 +624,18 @@ zcat All_20180418.vcf.gz | grep -v '^[#;]' | awk 'index($4,",")==0{suma++} index
 
 #Apply filter on multi allelic sites, and keep only the first 5 columns, which are the ones interesting for the allele check used by sstools.
 zcat All_20180418.vcf.gz | grep -v '^[#;]' | awk 'index($4,",")==0 && index($5,",")==0{print $1,$2,$3,$4,$5}' | gzip -c >  All_20180418_no_multi_allelic.gz
+
+#Make index
+zcat All_20180418_no_multi_allelic.gz | awk '/^#/ {next;} ($3==".") {next;} {OFS="\t";print $3,$1,$2;}' | sort -k1,1 > All_20180418_no_multi_allelic.inx
+
+#This takes a lot of time, so consider to set parallel=2 or higher (NOTE: setting parallel above 8 does not increase performance).
+zcat All_20180418_no_multi_allelic.gz | awk '($3==".") {next;} {OFS="\t";print $3,$1,$2,$4,$5;}' | sort -k1,1 --parallel=2 | gzip -c > All_20180418_no_multi_allelic_sorted_rsid.gz
+
+#Try join
+
+
+```
+This file was supposed to later going to be used as input when correcting alleles.ed as input when correcting alleles. as input when correcting alleles.ed as input when correcting alleles. Now that functionality is already included in sstools-gb lookup.$3,$4,$5}' | gzip -c >  All_20180418_no_multi_allelic.gz
 
 #Make index
 zcat All_20180418_no_multi_allelic.gz | awk '/^#/ {next;} ($3==".") {next;} {OFS="\t";print $3,$1,$2;}' | sort -k1,1 > All_20180418_no_multi_allelic.inx

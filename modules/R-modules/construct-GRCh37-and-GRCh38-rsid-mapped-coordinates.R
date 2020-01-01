@@ -112,11 +112,11 @@ message(paste("-------------------------------------",sep=""))
 }
 
 .print_to_file_locations_missing_rsid <- function(gr, pathToMissingRsidFile){
-  dt <- data.table(ix=mcols(gr)[["ix"]], CHR=sub("chr","", as.character(seqnames(gr)), ignore.case=TRUE), POS=start(gr))
+  dt <- data.table('0'=mcols(gr)[["ix"]], CHR=sub("chr","", as.character(seqnames(gr)), ignore.case=TRUE), POS=start(gr))
   fwrite(dt, file=pathToMissingRsidFile, sep="\t")
 }
 .print_to_file_locations_having_rsid <- function(gr, pathToFoundRsidFile){
-  dt <- data.table(ix=mcols(gr)[["ix"]], CHR=sub("chr","", as.character(seqnames(gr)), ignore.case=TRUE), POS=start(gr), dbSNP151=mcols(gr)[["RefSNP_id"]], REF=unlist(mcols(gr)[["ref_allele"]]), ALT=unlist(mcols(gr)[["alt_allele"]]))
+  dt <- data.table('0'=mcols(gr)[["ix"]], CHR=sub("chr","", as.character(seqnames(gr)), ignore.case=TRUE), POS=start(gr), dbSNP151=mcols(gr)[["RefSNP_id"]], REF=unlist(mcols(gr)[["ref_allele"]]), ALT=unlist(mcols(gr)[["alt_allele"]]))
   fwrite(dt, file=pathToFoundRsidFile, sep="\t")
 }
 
@@ -155,7 +155,7 @@ message(paste("-------------------------------------",sep=""))
 
 print_to_file_rsids_that_did_not_map_to_position <- function(new, old, oldix, outfile){
   tf <- old%in%new
-  fwrite(data.table(ix=oldix[!tf], RSID=old[!tf]), file=outfile, sep="\t")
+  fwrite(data.table('0'=oldix[!tf], RSID=old[!tf]), file=outfile, sep="\t")
 }
 
 ################################################################################
