@@ -548,7 +548,7 @@ infile1_six="${OUT_DIR0_sorted_index}/cad.add.160614.website.txt.gz"
 REF_DB_FILE_six="${REF_DB_DIR_sorted_index}/remaining_cad.add.160614.website.txt"
 zcat $infile1_six | sstools-utils ad-hoc-do -k "0|effect_allele|noneffect_allele" |  sstools-utils assemble  -g $REF_DB_FILE_six -j | head | sstools-eallele modifier -k "a1=2,a2=3,d1=8,d2=9,inx=1" > ${OUT_DIR3}/refallele_cad.add.160614.website.txt
 ```
-In the outout from "sstools-eallele modifier" all lines not fulfilling conditions to calculate modifier are printed to stderr. This output will be very usefull both to get the common ref-allele and the correct effect-size modifier to get the corresponding direction of effect. 
+In the output from "sstools-eallele modifier" all lines not fulfilling conditions to calculate modifier are printed to stderr. This output will be very usefull both to get the common ref-allele and the correct effect-size modifier to get the corresponding direction of effect. 
 
 ## <a name="sstools-stats"></a>sstools-stats
 
