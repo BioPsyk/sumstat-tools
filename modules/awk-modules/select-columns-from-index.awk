@@ -1,7 +1,7 @@
 #!/usr/bin/awk -f 
 
 #include functions from
-@include "modules/awk-modules/special-column-merge-split-alter-functions.awk"
+#@include "modules/awk-modules/special-column-merge-split-alter-functions.awk"
 
 #DEBUG
 #1)  In case more columns have been selected than have been declared
@@ -10,6 +10,11 @@
 
 # Begin is performed before reading from stdin
 BEGIN {
+    #sstoolsroot="."
+    #funxalgos=sstoolsroot"/modules/awk-modules/special-column-merge-split-alter-functions.awk"
+    #@include funxalgos
+    #@include "modules/awk-modules/special-column-merge-split-alter-functions.awk"
+
     # important to use multiple occurences of whitespace and tab as field sep
     #FS = "[ \t]+"
     #bad idea to allow other things than tab separated entries
