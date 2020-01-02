@@ -1,8 +1,5 @@
 #!/usr/bin/awk -f 
 
-#include functions from
-#@include "modules/awk-modules/special-column-merge-split-alter-functions.awk"
-
 #DEBUG
 #1)  In case more columns have been selected than have been declared
 #    it could very well be because one colname does not exist, and
@@ -10,10 +7,6 @@
 
 # Begin is performed before reading from stdin
 BEGIN {
-    #sstoolsroot="."
-    #funxalgos=sstoolsroot"/modules/awk-modules/special-column-merge-split-alter-functions.awk"
-    #@include funxalgos
-    #@include "modules/awk-modules/special-column-merge-split-alter-functions.awk"
 
     # important to use multiple occurences of whitespace and tab as field sep
     #FS = "[ \t]+"

@@ -22,7 +22,9 @@ source ${SSTOOLS_FUNCTIONS_LIBRARY}/sstools-pipe-helpers.sh
 source ${SSTOOLS_FUNCTIONS_LIBRARY}/sstools-mapfiles-helpers.sh
 
 #echo "$( IFS=$' '; echo "${userarr[*]}" )" 
-IFS='¬' read -r -a ARGS_TO_FUNC <<< $(${SSTOOLS_ROOT_ENV}/modules/bash-modules/sstools-init-modules/sstools-raw-init.sh "$@") 
+#IFS='¬' read -r -a ARGS_TO_FUNC <<< $(${SSTOOLS_ROOT_ENV}/modules/bash-modules/sstools-init-modules/sstools-raw-init.sh "$@") 
+#${SSTOOLS_ROOT_ENV}/modules/bash-modules/sstools-init-modules/sstools-raw-init.sh "$@" | IFS='¬' read -r -a ARGS_TO_FUNC
+IFS='¬' read -a ARGS_TO_FUNC < <(${SSTOOLS_ROOT_ENV}/modules/bash-modules/sstools-init-modules/sstools-raw-init.sh "$@")
 #echo "${ARGS_TO_FUNC[@]}"
 RESULT=$?
 #If the above (most recent command) was successful, then 
@@ -45,8 +47,11 @@ if [ $RESULT -eq 0 ]; then
     elif [ "$sstools_modifier" == "new-header" ]; then
       #echo "${ARGS_TO_FUNC[@]}"
       AWK_CHANGE_HEADER="${SSTOOLS_ROOT_ENV}/modules/awk-modules/change-header-to-passed-argument.awk"
-      cmd="awk -f ${AWK_CHANGE_HEADER} -v newHeader='${ARGS_TO_FUNC[1]}'"
-      readoption "${ARGS_TO_FUNC[0]}" | eval "${cmd}"
+      file="${ARGS_TO_FUNC[0]}"
+      newHeader="${ARGS_TO_FUNC[1]}"
+      #echo "${file}"
+      #echo "${newHeader}"
+      readoption "${ARGS_TO_FUNC[0]}" | eval gawk -f ${AWK_CHANGE_HEADER} -v newHeader="${newHeader}"
     elif [ "$sstools_modifier" == "new-sep" ]; then
       AWK_CHANGE_SEPARATOR="${SSTOOLS_ROOT_ENV}/modules/awk-modules/change-separator.awk"
       cmd1="awk -f ${AWK_CHANGE_SEPARATOR} -vFS='\t${ARGS_TO_FUNC[3]}' -vOFS='${ARGS_TO_FUNC[1]}' "

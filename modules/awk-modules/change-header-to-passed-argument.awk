@@ -1,6 +1,7 @@
 #!/usr/bin/awk -f 
 BEGIN {
     #Specify out field separator
+    FS = "\t"
     OFS = "\t"
     # split the input variable columns and store as out
     split(newHeader,headerout,",")
