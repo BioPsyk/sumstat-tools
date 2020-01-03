@@ -126,7 +126,8 @@ message(paste("-------------------------------------",sep=""))
 .fetchColFromFile <- function(file, field_ix){
   #use special awk split function
   AWK_SELECT_BY_COLNAME=paste(SSTOOLS_ROOT, "/modules/awk-modules/select-columns-from-index.awk", sep="")
-  text1 <- paste("zcat ", file, " | head -n1000 | gawk -f ", AWK_SELECT_BY_COLNAME, " -v mapcols=\"",field_ix,"\" -v newcols=\"",field_ix,"\" | tail -n+2", sep="")
+  SSTOOLS_ADHOC_SPECIAL_FUNCTIONS=paste(SSTOOLS_ROOT, "/modules/awk-modules/special-column-merge-split-alter-functions.awk", sep="")
+  text1 <- paste("zcat ", file, " | gawk -f ", AWK_SELECT_BY_COLNAME, " -f ", SSTOOLS_ADHOC_SPECIAL_FUNCTIONS," -v mapcols=\"",field_ix,"\" -v newcols=\"",field_ix,"\" | tail -n+2", sep="")
   system(text1, intern=TRUE)
 }
 
