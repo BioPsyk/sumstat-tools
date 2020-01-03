@@ -351,7 +351,7 @@ inx=(1 2 3)
 for j in "${inx[@]}"; do \
 ( \
   echo "file $j starting ..."; \
-  $(sstools-gb which-wrap -d ${DATA_DIR} -m ${MAPFILE_GWAS} -o ${MAPFILE_GWAS_2} -i ${j} )
+    sstools-gb which-wrap -d ${DATA_DIR} -m ${MAPFILE_GWAS} -o ${MAPFILE_GWAS_2} -i ${j}
   echo "file $j done ..."; \
 ) & \
 done; wait
@@ -546,7 +546,7 @@ zcat $infile1 | sstools-utils ad-hoc-do -k "effect_allele|noneffect_allele" |  s
 # If both the raw infile and the sucessfull mapping have a sorted index column, they can be merged mush faster and less memory consuming using the join command.
 infile1_six="${OUT_DIR0_sorted_index}/cad.add.160614.website.txt.gz"
 REF_DB_FILE_six="${REF_DB_DIR_sorted_index}/remaining_cad.add.160614.website.txt"
-zcat $infile1_six | sstools-utils ad-hoc-do -k "0|effect_allele|noneffect_allele" |  sstools-utils assemble  -g $REF_DB_FILE_six -j | head | sstools-eallele modifier -k "a1=2,a2=3,d1=8,d2=9,inx=1" > ${OUT_DIR3}/refallele_cad.add.160614.website.txt
+zcat $infile1_six | sstools-utils ad-hoc-do -k "0|effect_allele|noneffect_allele" |  sstools-utils assemble  -g $REF_DB_FILE_six -j | sstools-eallele modifier -k "a1=2,a2=3,d1=8,d2=9,inx=1" > ${OUT_DIR3}/refallele_cad.add.160614.website.txt
 ```
 In the outout from "sstools-eallele modifier" all lines not fulfilling conditions to calculate modifier are printed to stderr. This output will be very usefull both to get the common ref-allele and the correct effect-size modifier to get the corresponding direction of effect. 
 
@@ -567,12 +567,14 @@ To make things worse, we sometimes have values in log form, and sometimes not. T
 Using example data coming with the project we have designed this example to be runnnable just by starting from the projects root folder, therefore place yourself in the project root folder, and set the paths to the following (preferably the absolute paths):
 
 ```shell
-# Mapfile with statistics
-MAPFILE_GWAS_3="${OUT_DIR1}/mapfile-statistics.txt"
-
 #Raw data directory
 DATA_DIR="data/gwas-summary-stats"
 
+# Specify path to outfolder
+OUT_DIR4="out/common_statistics"
+
+# Make outfolder if it does not already exist
+mkdir -p ${OUT_DIR4}
 ```
 
 #### One file statistics extraction
@@ -581,29 +583,51 @@ Similar to how we treat sumstat data for genome build information we need to ins
 
 ```shell
 # Select file we are about to lookup the genomic build information for
-infile1="${DATA_DIR}/cad.add.160614.website.txt.gz"
+infile1_six="${OUT_DIR0_sorted_index}/cad.add.160614.website.txt.gz"
 
 # Look at the header to see available field names
-zcat $infile1 | head -n3
+zcat $infile1_six | head -n3
 
+# Declare params
+beta_field_name="beta"
+zscore_field_name="funx_Eff_Err_2_Z(beta,se_dgc)"
+
+# Use beta and zscore in output
+sstools-utils ad-hoc-do -f $infile1_six -k "${beta_field_name}|${zscore_field_name}" -n"new1,new2" | head
 ```
-The file has both chromosome and basepair (bp) information, but is missing rsid. We make a quick test which coordinate build the coordinates belongs to (from the header it seems like hg19, but we run this script to be certain). Use 'sstools-gb which' to investigate this.
+
+We not only want the correct statistics format output, but also making sure the measurement is associated to the right allele. To solve that we can use the effect allele modifier calculate in the previous section. 
 
 ```shell
 # Declare params
-beta_field_name="beta"
-zscore_field_name="beta"
+effect_mod_file_six="out/common_effect_allele/refallele_cad.add.160614.website.txt"
 
-# Use beta in output
-sstools-utils ad-hoc-do -f $infile1 -k "${beta_field_name}" | head
-```
+# Convert the beta according to the modifier
+sstools-utils ad-hoc-do -f $infile1_six -k "0|${beta_field_name}" -n"0,beta" | sstools-utils assemble  -g $effect_mod_file_six -j | head
 
+# Convert the beta according to the modifier
+sstools-utils ad-hoc-do -f $infile1_six -k "0|${beta_field_name}" -n"0,beta" | sstools-utils assemble  -g $effect_mod_file_six -j | awk -vOFS="\t" '{$2=$2*$5}'1 | head
+sstools-stats modify -k "w=2,m=5" | head
+
+sstools-utils ad-hoc-do -f $infile1_six -k "0|${beta_field_name}" -n"0,beta" | sstools-utils assemble  -g $effect_mod_file_six -j | awk -vOFS="\t" '{$2=$2*$5}'1 > ${OUT_DIR4}/modifiedstats_cad.add.160614.website.txt
 ```
 
 
 ## <a name="sstools-utils"></a>sstools-utils
 
 There are many shared functionalities within this software suit, which we have tried to collect in the sstools-utils toolkit. Many examples of its usage is described within the previous sections. Here we try to focus on describing how to effectively merge output files of interest from the previous sections.
+
+
+```shell
+# Prepare paths to all files of interest
+infile1_six="${OUT_DIR0_sorted_index}/cad.add.160614.website.txt.gz"
+common_allele_and_stats=${OUT_DIR4}/modifiedstats_cad.add.160614.website.txt
+position_GRCh37="${OUT_DIR2_sorted_index}/successfull_mappings/GRCh37/remaining_cad.add.160614.website.txt"
+
+# Assemble the quality controlled set of data
+sstools-utils ad-hoc-do -f $infile1_six -k "0|se_dgc" -n"0,SE" | sstools-utils assemble  -g $position_GRCh37 -j | sstools-utils assemble  -g $common_allele_and_stats -j  | head
+```
+
 
 
 
@@ -631,9 +655,6 @@ zcat All_20180418_no_multi_allelic.gz | awk '/^#/ {next;} ($3==".") {next;} {OFS
 #This takes a lot of time, so consider to set parallel=2 or higher (NOTE: setting parallel above 8 does not increase performance).
 zcat All_20180418_no_multi_allelic.gz | awk '($3==".") {next;} {OFS="\t";print $3,$1,$2,$4,$5;}' | sort -k1,1 --parallel=2 | gzip -c > All_20180418_no_multi_allelic_sorted_rsid.gz
 
-#Try join
-
-
 ```
 This file was supposed to later going to be used as input when correcting alleles.ed as input when correcting alleles. as input when correcting alleles.ed as input when correcting alleles. Now that functionality is already included in sstools-gb lookup.$3,$4,$5}' | gzip -c >  All_20180418_no_multi_allelic.gz
 
@@ -642,9 +663,6 @@ zcat All_20180418_no_multi_allelic.gz | awk '/^#/ {next;} ($3==".") {next;} {OFS
 
 #This takes a lot of time, so consider to set parallel=2 or higher (NOTE: setting parallel above 8 does not increase performance).
 zcat All_20180418_no_multi_allelic.gz | awk '($3==".") {next;} {OFS="\t";print $3,$1,$2,$4,$5;}' | sort -k1,1 --parallel=2 | gzip -c > All_20180418_no_multi_allelic_sorted_rsid.gz
-
-#Try join
-
 
 ```
 This file is later going to be used as input when correcting alleles.ed as input when correcting alleles. as input when correcting alleles.ed as input when correcting alleles.
