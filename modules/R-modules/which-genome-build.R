@@ -78,8 +78,16 @@ if (chr_tf & bp_tf | rs_tf){
     
     #use special awk split function
     AWK_SELECT_BY_COLNAME=paste(SSTOOLS_ROOT, "/modules/awk-modules/select-columns-from-index.awk", sep="")
-    text1 <- paste("zcat ", file, " | head -n1000 | gawk -f ", AWK_SELECT_BY_COLNAME, " -v mapcols=\"",chr_ix,"\" -v newcols=\"chr\" | tail -n+2", sep="")
-    text2 <- paste("zcat ", file, " | head -n1000 | gawk -f ", AWK_SELECT_BY_COLNAME, " -v mapcols=\"",bp_ix,"\" -v newcols=\"bp\" | tail -n+2", sep="")
+    SSTOOLS_ADHOC_SPECIAL_FUNCTIONS=paste(SSTOOLS_ROOT, "/modules/awk-modules/special-column-merge-split-alter-functions.awk", sep="")
+
+    text1 <- paste("zcat ", file, " | head -n1000 | gawk -f ", AWK_SELECT_BY_COLNAME, " -f ", SSTOOLS_ADHOC_SPECIAL_FUNCTIONS," -v mapcols=\"",chr_ix,"\" -v newcols=\"chr\" | tail -n+2", sep="")
+
+    #text1 <-paste("zcat ", file, " | head -n100 | sstools-utils ad-hoc-do -k '",chr_ix,"' -n 'chr'", sep="")
+
+    text2 <- paste("zcat ", file, " | head -n1000 | gawk -f ", AWK_SELECT_BY_COLNAME, " -f ", SSTOOLS_ADHOC_SPECIAL_FUNCTIONS," -v mapcols=\"",bp_ix,"\" -v newcols=\"bp\" | tail -n+2", sep="")
+
+    #text2 <-paste("zcat ", file, " | head -n100 | sstools-utils ad-hoc-do -k '",bp_ix,"' -n 'bp'", sep="")
+
     #text1 <- paste("zcat ", file, " | head -n3000 | tail -n+2 | awk '{print $",chr_ix2,"}' ")
     #text2 <- paste("zcat ", file, " | head -n3000 | tail -n+2 | awk '{print $",bp_ix2,"}' ")
     chr <- as.integer(system(text1, intern=TRUE))
@@ -90,15 +98,15 @@ if (chr_tf & bp_tf | rs_tf){
     suppressWarnings(seqlevelsStyle(anngr2.GRChX) <- "UCSC")
 
     #If the data is 35 (hg17), then this is the right procedure
-    ch = import.chain("/home/people/jesgaa/2019-10-14-simple-andres-ldpred-run/data/extra/hg17ToHg38.over.chain")
+    ch = import.chain(paste(SSTOOLS_ROOT, "/data/liftover/hg17ToHg38.over.chain", sep=""))
     anngr2.GRCh35 = unlist(liftOver(anngr2.GRChX, ch))
 
     #If the data is 36 (hg18), then this is the right procedure
-    ch = import.chain("/home/people/jesgaa/2019-10-14-simple-andres-ldpred-run/data/extra/hg18ToHg38.over.chain")
+    ch = import.chain(paste(SSTOOLS_ROOT, "/data/liftover/hg18ToHg38.over.chain", sep=""))
     anngr2.GRCh36 = unlist(liftOver(anngr2.GRChX, ch))
     
     #If the data is 37 (hg19), then this is the right procedure
-    ch = import.chain("/home/people/jesgaa/2019-10-14-simple-andres-ldpred-run/data/extra/hg19ToHg38.over.chain")
+    ch = import.chain(paste(SSTOOLS_ROOT, "/data/liftover/hg19ToHg38.over.chain", sep=""))
     anngr2.GRCh37 = unlist(liftOver(anngr2.GRChX, ch))
 
     #If the data is 38 (hg38), then the data is already in the right format

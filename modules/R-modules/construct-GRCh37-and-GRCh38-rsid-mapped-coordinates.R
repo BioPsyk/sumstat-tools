@@ -97,13 +97,16 @@ message(paste("-------------------------------------",sep=""))
   if(any(le==0)){
     #write to some outfile for all positions that did not map in lift over
     goneByLiftover <- gr[le==0]
-    dt <- data.table(ix=mcols(goneByLiftover)[["ix"]], CHR=sub("chr","", as.character(seqnames(goneByLiftover)), ignore.case=TRUE), POS=start(goneByLiftover))
+    #Here the algo had problems with col2 being S4, and fwrite therefore complained. 
+    #dt <- data.table('0'=mcols(goneByLiftover)[["ix"]], CHR=sub("chr","", as.character(seqnames(goneByLiftover)), ignore.case=TRUE), POS=start(goneByLiftover))
+    dt <- data.table('0'=mcols(goneByLiftover)[["ix"]])
     fwrite(dt, file=pathMissingLocationsFile, sep="\t")
   }
   if(any(le>1)){
     #write to some outfile for all positions that did map to multiple positions in lift over (then discard)
     multimapByLiftover <- unlist(gr[le>1])
-    dt <- data.table(ix=mcols(multimapByLiftover)[["ix"]], CHR=sub("chr","", as.character(seqnames(multimapByLiftover)), ignore.case=TRUE), POS=start(multimapByLiftover))
+    #dt <- data.table('0'=mcols(multimapByLiftover)[["ix"]], CHR=sub("chr","", as.character(seqnames(multimapByLiftover)), ignore.case=TRUE), POS=start(multimapByLiftover))
+    dt <- data.table('0'=mcols(multimapByLiftover)[["ix"]])
     fwrite(dt, file=pathMultimappedLocationsFile, sep="\t")
     #remove them from pipeline
     gr <- gr[le==1]
