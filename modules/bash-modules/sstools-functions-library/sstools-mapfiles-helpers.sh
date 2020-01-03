@@ -374,7 +374,9 @@ function interactiveWalkerMultiple() {
   # loop through every element in the array
   for (( i=0; i<${filepathsremainlength}; i++ ));
   do
-    filepath=${filepathsremain[i]}
+    echo "iterating through file ${i} of ${filepathsremainlength}" 2>&1
+    filepath=${filepathsremain[${i}]}
+    echo "now treating file ${filepath}" 2>&1
     interactiveWalkerSingle ${filepath} ${mapout} ${newheader} ${SSTOOLS_ROOT}
   done
 }

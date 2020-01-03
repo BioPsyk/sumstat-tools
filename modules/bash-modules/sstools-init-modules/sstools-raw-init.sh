@@ -144,7 +144,7 @@ elif [ "$sstools_modifier" == "new-header" ] ; then
     infile_path="-"
   fi
   if [ -n "$infile_path" ] && [ -n "$colnames" ] ; then
-    printf "%s¬%s\n" ${infile_path} ${colnames}  
+    printf "%s¬%s\n" ${infile_path} ${colnames}
   else
     echo "Error: all required params have to be set, input file missing"
     newheader_usage 1>&2 
