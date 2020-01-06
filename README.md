@@ -665,11 +665,27 @@ zcat All_20180418_no_multi_allelic.gz | awk '/^#/ {next;} ($3==".") {next;} {OFS
 zcat All_20180418_no_multi_allelic.gz | awk '($3==".") {next;} {OFS="\t";print $3,$1,$2,$4,$5;}' | sort -k1,1 --parallel=2 | gzip -c > All_20180418_no_multi_allelic_sorted_rsid.gz
 
 # make two files, one sorted on chr-pos and one on rsid, both stripped to keep only first 5 columns.
-zcat All_20180418.vcf.gz | grep -v '^[#;]' | awk -vOFS="\t" '{print $1,$2,$3,$4,$5}' > All_20180418.stripped
+zcat All_20180418.vcf.gz | grep -v '^[#;]' | awk -vOFS="\t" '{print $1":"$2,$3,$4,$5}' > All_20180418.stripped
 
-LC_ALL=C sort -k1,1 -k2,2 --parallel=8 All_20180418.stripped > All_20180418.stripped.chrpos.sorted
-LC_ALL=C sort -k3,3 --parallel=8 All_20180418.stripped > All_20180418.stripped.rsid.sorted
+#LC_ALL=C sort -k1,1 -k2,2 --parallel=8 All_20180418.stripped > All_20180418.stripped.chrpos.sorted
+LC_ALL=C sort -k1,1 --parallel=8 All_20180418.stripped > All_20180418.stripped.chrpos.sorted
+LC_ALL=C sort -k2,2 --parallel=8 All_20180418.stripped > All_20180418.stripped.rsid.sorted
 
 # Filter the chrpos file on duplicates to only point to one rs-identifier per position. 
+#LC_ALL=C sort -k1,1 --parallel=8 -u All_20180418.stripped.chrpos.sorted > All_20180418.stripped.chrpos.sorted.unique
+
+# To join two files on chrpos, then create temp-chrpos-sorted-file and do for example:
+zcat tmp/AD_sumstats_Jansenetal.txt.gz | awk -vOFS="\t" '{print $3":"$4,$1,$3,$4}' | LC_ALL=C sort -k1,1 > tmp/AD_sumstats_Jansenetal.txt.chrpos.sorted
+LC_ALL=C join -t $'\t' -1 1 -2 1 tmp/AD_sumstats_Jansenetal.txt.chrpos.sorted All_20180418.stripped.chrpos.sorted | head
+
+# Did not match too well, so first liftover to correct coordinate system and then sort and join
+cat tmp/AD_sumstats_Jansenetal.txt.chrpos.sorted | /home/people/jesgaa/R/R_from_source/2019-12-17-r-devel/bin/Rscript /home/people/jesgaa/repos/sumstat-tools/modules/R-modules/liftover-stream.R /home/people/jesgaa/R/R_from_source/2019-12-17-r-devel/library "GRCh36" "GRCh38" 100000 "chrpos=1,inx=2" /home/people/jesgaa/repos/sumstat-tools > tmp/AD_sumstats_Jansenetal.txt.chrpos.GRCh38
+
+cat tmp/AD_sumstats_Jansenetal.txt.chrpos.GRCh38 | LC_ALL=C sort -k1,1 > tmp/AD_sumstats_Jansenetal.txt.chrpos.GRCh38.sorted
+
+LC_ALL=C join -t $'\t' -1 1 -2 1 tmp/AD_sumstats_Jansenetal.txt.chrpos.GRCh38.sorted All_20180418.stripped.chrpos.sorted > tmp/AD_sumstats_Jansenetal.txt.chrpos.GRCh38.sorted.join
+
+# Then to get GRCh37 version lift back the coordinate system
+cat  tmp/AD_sumstats_Jansenetal.txt.chrpos.GRCh38.sorted.join | /home/people/jesgaa/R/R_from_source/2019-12-17-r-devel/bin/Rscript /home/people/jesgaa/repos/sumstat-tools/modules/R-modules/liftover-stream.R /home/people/jesgaa/R/R_from_source/2019-12-17-r-devel/library "GRCh38" "GRCh37" 100000 "chrpos=1,inx=2" /home/people/jesgaa/repos/sumstat-tools >  tmp/AD_sumstats_Jansenetal.txt.chrpos.GRCh37.sorted.join
 
 ```
