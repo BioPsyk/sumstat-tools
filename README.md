@@ -664,5 +664,12 @@ zcat All_20180418_no_multi_allelic.gz | awk '/^#/ {next;} ($3==".") {next;} {OFS
 #This takes a lot of time, so consider to set parallel=2 or higher (NOTE: setting parallel above 8 does not increase performance).
 zcat All_20180418_no_multi_allelic.gz | awk '($3==".") {next;} {OFS="\t";print $3,$1,$2,$4,$5;}' | sort -k1,1 --parallel=2 | gzip -c > All_20180418_no_multi_allelic_sorted_rsid.gz
 
+# make two files, one sorted on chr-pos and one on rsid, both stripped to keep only first 5 columns.
+zcat All_20180418.vcf.gz | grep -v '^[#;]' | awk -vOFS="\t" '{print $1,$2,$3,$4,$5}' > All_20180418.stripped
+
+LC_ALL=C sort -k1,1 -k2,2 --parallel=8 All_20180418.stripped > All_20180418.stripped.chrpos.sorted
+LC_ALL=C sort -k3,3 --parallel=8 All_20180418.stripped > All_20180418.stripped.rsid.sorted
+
+# Filter the chrpos file on duplicates to only point to one rs-identifier per position. 
+
 ```
-This file is later going to be used as input when correcting alleles.ed as input when correcting alleles. as input when correcting alleles.ed as input when correcting alleles.
