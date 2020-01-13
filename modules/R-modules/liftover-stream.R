@@ -24,7 +24,7 @@ cix=c(vals[["chrpos"]],vals[["inx"]])
 #bp_ix="POSITION"
 #file="/home/people/jesgaa/data/dbsnp151/tmp/AD_sumstats_Jansenetal.txt.chrpos.sorted"
 #gbin="GRCh36"
-#gbin="GRCh38"
+#gbout="GRCh38"
 #chunksize=10000
 #SSTOOLS_ROOT="/home/people/jesgaa/repos/sumstat-tools"
 
@@ -83,7 +83,9 @@ input<-file('stdin', 'r')
 #input<-file(file, 'r')
 
 while(length(line <- readLines(input, n=chunksize)) > 0){
-  da <- lapply(strsplit(line, "\t"),function(x){x[cix]})
+  al <- strsplit(line, "\t")
+  da <- lapply(al,function(x){x[cix]})
+  res <- unlist(lapply(al,function(x){paste(x[-cix],collapse="\t")}))
   spl <- lapply(da, function(x){strsplit(x[1], ":")})
   chr <- suppressWarnings(as.integer(unlist(lapply(spl, function(x){x[[1]][1]}))))
   bp <- suppressWarnings(as.integer(unlist(lapply(spl, function(x){x[[1]][2]}))))
@@ -97,10 +99,11 @@ while(length(line <- readLines(input, n=chunksize)) > 0){
     chr <- chr[!tf]
     bp <- bp[!tf]
     ix <- ix[!tf]
+    res <- res[!tf]
   }
 
   # Potentially any format GRCh36, GRCh37 or GRCh38
-  anngr2.GRChX <- GRanges(seqnames=chr, IRanges(bp, width=1), strand="*", ix=ix)
+  anngr2.GRChX <- GRanges(seqnames=chr, IRanges(bp, width=1), strand="*", ix=ix, res=res)
   # Coerce to GRCh38 depending provided the correct present genomebuild
   if((gbin=="GRCh35" | gbin=="GRCh36" | gbin=="GRCh37") & gbout=="GRCh38"){
     anngr2.GRCh38 <- .coerce_to_GRCh38_from_genome_build_info(anngr2.GRChX, gbin)
@@ -116,9 +119,10 @@ while(length(line <- readLines(input, n=chunksize)) > 0){
   # Write to stdout the line that survived all filters and got a modifier
   suppressWarnings(seqlevelsStyle(anngr2.out) <- "NCBI" )
   chrpos <- paste(seqnames(anngr2.out),":",start(anngr2.out),sep="")
-  inx <- mcols(anngr2.out)[["ix"]]
+  ix <- mcols(anngr2.out)[["ix"]]
+  res <- mcols(anngr2.out)[["res"]]
   for(i in 1:length(chrpos)){
-    cat(chrpos[i], inx[i], "\n", append=FALSE, sep="\t")
+    cat(chrpos[i], ix[i], res[i], "\n", append=FALSE, sep="\t")
   }
 }
 
