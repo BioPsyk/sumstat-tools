@@ -16,6 +16,9 @@ BEGIN {
   if (length(notGCTA) == 0){
     notGCTA="/dev/stderr"
   }
+  if (length(indel) == 0){
+    indel="/dev/stderr"
+  }
   if (length(homvar) == 0){
     homvar="/dev/stderr"
   }
@@ -35,6 +38,9 @@ BEGIN {
 {
   if(!(in_GTCA($2) && in_GTCA($3) && in_GTCA($7) && in_GTCA($8))){
     print $0 > notGCTA;
+  }else if(indl($2,$3) || indl($7,$8)){
+  # Check for homozygote variants (should not happen in real data)
+    print $0 > indel;
   }else if(homozygous($2,$3) || homozygous($7,$8)){
   # Check for homozygote variants (should not happen in real data)
     print $0 > homvar;

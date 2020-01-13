@@ -1,7 +1,11 @@
 #!/usr/bin/awk -f 
 
 function in_GTCA(field){
-  ans=field=="A" || field=="T" || field=="G" || field=="C";
+  ans=field ~ /^[GCTA]+$/;
+  return ans;
+}
+function indl(f1,f2){
+  ans=length(f1)!=1 || length(f2)!=1
   return ans;
 }
 function homozygous(one,two){
