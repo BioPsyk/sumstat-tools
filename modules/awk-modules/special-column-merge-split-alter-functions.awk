@@ -36,6 +36,11 @@ function funx_lowCase_2_upperCase(allele) {
 
 ################################################################################
 # Z-score calculations 
+# Note from Andrew:   We need meta-data to confirm logistic or linear regression
+#                     LMM and gLMM may not work in the same ways, esp. for downstream analyses
+#
+#
+#
 ################################################################################
 
 
@@ -46,9 +51,25 @@ function funx_Eff_Err_2_Z(efferr) {
   return s;
 }
 
+
 #log(x) in awk is natural log
 #To calc negative log10: awk -F"," '{a = -log($16)/log(10); printf("%0.4f\n", a)}'
+
 #z = ln(OR)*OR/se  , https://www.stata.com/statalist/archive/2003-02/msg00740.html
+# Note from Andrew:  I don't understand this formula for z, I think it is not the general formula for data we work with.
+#                    s.e. of an OR is not that meaningful because its not a normally distributed stat, so 95% confidence,
+#                    which is asymetric ( i.e., it may be ~1 with a 95% CI = 0.9 to 1.3 ) is prefferred and usually reported.
+#                    This is because the same info is contained in an OR from 0 to 1 and from 1 to infinity, the 
+#                    "opposite" effect isnt simply negative of the effect.  
+#                    I think for most case-control studies we can assume a logistic regression where the s.e. is nearly always
+#                    on the ln(OR) scale, although we can investigate how that relates to chi-square, trend tests, etc.
+#                    Perhaps we can build in a fail safe, like is the s.e. consistent with Beta/s.e.=Z if all of the stats
+#                    are present?
+#                    This might be a better cite, although it's just a quick google result:
+#                    https://www.ncbi.nlm.nih.gov/pmc/articles/PMC1065119/
+#
+#                    I now see the code below is consistent with what i just wrote ... ¯\_(ツ)_/¯
+
 function funx_OR_logORErr_2_Z(ORerr) {
   split(ORerr,sp,",")
   s = log(sp[1])/sp[2];
@@ -61,9 +82,6 @@ function funx_logOR_logORErr_2_Z(logORlogErr) {
   return s;
 }
 
-
-
-
 # We have to make our own awk function for the normal inverse cumulative distribution function
 # C code version available here: https://www.johndcook.com/blog/normal_cdf_inverse/
 # and a brief explanation of the concept
@@ -71,7 +89,15 @@ function funx_logOR_logORErr_2_Z(logORlogErr) {
 function RationalApproximation(t) {
    # Abramowitz and Stegun formula 26.2.23.
    # The absolute value of the error should be less than 4.5 e-4.
-   
+
+   # Note from Andrew: This could be worth studying relative to R or some other tool. 
+   #                    that tolerance is fine for a normal z-score, but in the range of GWAS significance (p < 1e-10),
+   #                    does it matter?  A quick test suggest no, but something to keep in mind, maybe?
+   #                    R uses this algorithm:
+   #                    http://csg.sph.umich.edu/abecasis/gas_power_calculator/algorithm-as-241-the-percentage-points-of-the-normal-distribution.pdf
+   #                    I am not sure how relevant any of this is, but if we start choosing approximations we might
+   #                        want to consider a few options. 
+
    #store as arrays
    c[1]=2.515517
    c[2]=0.802853
@@ -118,6 +144,19 @@ function sgn(x){
   }
 }
 
+## Notes from Andrew:
+##  I think the below equations need two modifications:
+##      A two-tailed adjustment (p-values in GWAS are typically two-tailed):    
+##      - NormalCDFInverse(p2) -> NormalCDFInverse(p2/2)
+##      A sign consistency adjustment (ensure that the result of NormalCDFInverse is positive):
+##      - NormalCDFInverse(p2/2) -> abs( NormalCDFInverse(p2/2) )
+##
+##  Id like to test the following input:
+##    OR = 0.5, P = 0.95, which should give Z = -0.0627
+##    OR = 0.5, P = 0.05, which should give Z = -1.9599
+##    OR = 1.5, P = 0.95, which should give Z = 0.0627
+##    OR = 1.5, P = 0.05, which should give Z = 1.9599
+
 function funx_OR_and_Pvalue_2_Z(ORPvalue) {
   split(ORPvalue,sp,",")
   p2 = sp[2]/2
@@ -131,3 +170,35 @@ function funx_logOR_and_Pvalue_2_Z(logORPvalue) {
   return s;
 }
 #echo "0.90,0.7" | awk -i special-column-merge-split-alter-functions.awk '{print funx_OR_and_Pvalue_2_Z($1)}'
+
+################################################################################
+# SE calculations 
+# Note from Andrew: It might be worth trying to recover the s.e. from the Z for completeness
+#                   like if they only give OR, ln(OR) and z or P
+#                   Some advanced methods use the s.e. from shrinkage or other tricks
+#
+#                   We might also consider testing the robustness of our transformations in real world analyses:
+#                   We could take some complete stats and censor different columns, re-estimate the values,
+#                   compute h2, PRS, etc.
+#                   In some cases our computed might be better, they could correct errors by forcing internal
+#                   consistency.  This could be a "perk" of our package.  More than just rearranging columns.
+################################################################################
+
+function funx_logOR_Z_2_se(logORZ) {
+  split(logORlogErr,sp,",")
+  s = sp[1]/sp[2];
+  return s;
+}
+
+function funx_OR_Z_2_se(ORZ) {
+  split(logORlogErr,sp,",")
+  s = log(sp[1])/sp[2];
+  return s;
+}
+
+################################################################################
+# P-Value calculations 
+# Note from Andrew:   I am not sure how to computes the Cumulative Normal Distribution (from x to p)
+#                     The R code is: P <- 2*pnorm( -abs( Z ) )
+#
+################################################################################
