@@ -60,7 +60,7 @@ BEGIN {
   # Use expected A2 as A2 
     a2=calcExpectedA2($2,$5,$6)
   # Calculate effect modifier for remaining and print to stdout
-    print $0,effmod($2,a2,$5)
+    print $1,$2,a2,$3,$4,$5,$6,effmod($2,a2,$5)
   }
 }
 
