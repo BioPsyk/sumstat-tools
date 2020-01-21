@@ -144,12 +144,14 @@ function sgn(x){
   }
 }
 
+function abs(v) {return v < 0 ? -v : v}
+
 ## Notes from Andrew:
 ##  I think the below equations need two modifications:
 ##      A two-tailed adjustment (p-values in GWAS are typically two-tailed):    
-##      - NormalCDFInverse(p2) -> NormalCDFInverse(p2/2)
+##      - NormalCDFInverse(p2) -> NormalCDFInverse(p2/2)     [fixed 2020-01-21:Jesper]
 ##      A sign consistency adjustment (ensure that the result of NormalCDFInverse is positive):
-##      - NormalCDFInverse(p2/2) -> abs( NormalCDFInverse(p2/2) )
+##      - NormalCDFInverse(p2/2) -> abs( NormalCDFInverse(p2/2) )    [fixed 2020-01-21:Jesper]
 ##
 ##  Id like to test the following input:
 ##    OR = 0.5, P = 0.95, which should give Z = -0.0627
@@ -160,13 +162,13 @@ function sgn(x){
 function funx_OR_and_Pvalue_2_Z(ORPvalue) {
   split(ORPvalue,sp,",")
   p2 = sp[2]/2
-  s = sgn(log(sp[1]))*NormalCDFInverse(p2);
+  s = sgn(log(sp[1]))*abs(NormalCDFInverse(p2/2));
   return s;
 }
 function funx_logOR_and_Pvalue_2_Z(logORPvalue) {
   split(logORPvalue,sp,",")
   p2 = sp[2]/2
-  s = sgn(sp[1])*NormalCDFInverse(p2);
+  s = sgn(sp[1])*abs(NormalCDFInverse(p2/2));
   return s;
 }
 #echo "0.90,0.7" | awk -i special-column-merge-split-alter-functions.awk '{print funx_OR_and_Pvalue_2_Z($1)}'
