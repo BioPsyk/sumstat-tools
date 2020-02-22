@@ -32,6 +32,11 @@ function whichexists(){
       echo "    sstools-gb which-exists -h                      (Display this help message)"
       echo " "
 }
+function liftover_usage(){
+      echo "Usage:"
+      echo "    sstools-gb liftover -h                      (Display this help message)"
+      echo " "
+}
 function lookup_usage(){
       echo "Usage:"
       echo "    sstools-gb lookup -h                      (Display this help message)"
@@ -66,6 +71,11 @@ case "${paramarray[0]}" in
     getoptsstring=":hm:g:ikn"
     shift # Remove `install` from the argument list
     ;;
+  liftover)
+    sstools_modifier=${paramarray[0]}
+    getoptsstring=":hf:g:q:s:i:"
+    shift # Remove `install` from the argument list
+    ;;
   lookup)
     sstools_modifier=${paramarray[0]}
     getoptsstring=":hc:p:r:f:g:o:"
@@ -98,6 +108,8 @@ while getopts "${getoptsstring}" opt "${paramarray[@]}"; do
         whichexists_usage 1>&2
       elif [ "$sstools_modifier" == "lookup" ]; then
         lookup_usage 1>&2
+      elif [ "$sstools_modifier" == "liftover" ]; then
+        liftover_usage 1>&2
       elif [ "$sstools_modifier" == "lookup-wrap" ]; then
         lookupwrap_usage 1>&2
       fi
@@ -150,6 +162,12 @@ while getopts "${getoptsstring}" opt "${paramarray[@]}"; do
       ;;
     n )
       names=true
+      ;;
+    q )
+      gbout=$OPTARG
+      ;;
+    s )
+      size=$OPTARG
       ;;
     \? )
       echo "Invalid Option: -$OPTARG" 1>&2
@@ -212,6 +230,10 @@ elif [ "$sstools_modifier" == "which-exists" ] ; then
     which_usage 1>&2 
     exit 1
   fi
+elif [ "$sstools_modifier" == "liftover" ]; then
+      #will write check for these arguments below later
+      #echo "${infile_path} ${SSTOOLS_RLIB} ${genome_build} ${gbout} ${size} ${inx}" 1>&2
+      toreturn="${infile_path} ${SSTOOLS_RLIB} ${genome_build} ${gbout} ${size} ${inx}"
 elif [ "$sstools_modifier" == "lookup" ]; then
   if [ -n "$infile_path" ] && [ -n "$genome_build" ] && [ -n "$output_dir" ] ; then
     if [ -n "$chr_field_name" ] && [ -n "$bp_field_name" ] && [ -n "$rs_field_name" ] ; then

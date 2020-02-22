@@ -40,8 +40,7 @@ if [ $RESULT -eq 0 ]; then
       SSTOOLS_ADHOCDO_FUNCTIONS_ARRANGE="${VAR_RETURN[1]}"
       specialfunction="${VAR_RETURN[2]}"
       newcols="${VAR_RETURN[3]}"
-      cmd="gawk -f ${SSTOOLS_ADHOCDO_FUNCTIONS_ARRANGE} -f ${SSTOOLS_ADHOC_SPECIAL_FUNCTIONS} -v mapcols='${specialfunction}' -v newcols='${newcols}'"
-      readoption "${infile}" | eval "${cmd}"
+      readoption "${infile}" | awk -f ${SSTOOLS_ADHOCDO_FUNCTIONS_ARRANGE} -f ${SSTOOLS_ADHOC_SPECIAL_FUNCTIONS} -v mapcols="${specialfunction}" -v newcols="${newcols}"
 
     elif [ "$sstools_modifier" == "assemble" ]; then
       #eval $VAR_RETURN

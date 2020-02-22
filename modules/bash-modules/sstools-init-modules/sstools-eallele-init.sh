@@ -19,12 +19,23 @@ function modifier_usage(){
       echo " "
 
 }
+function correction_usage(){
+      echo "Usage:"
+      echo "    sstools-eallele correction -h                      (Display this help message)"
+      echo " "
+
+}
 
 # check for and then remove first modifier from arguments list.
 case "${paramarray[0]}" in
   modifier)
     sstools_modifier=${paramarray[0]}
     getoptsstring=":hf:k:"
+    shift # Remove `install` from the argument list
+    ;;
+  correction)
+    sstools_modifier=${paramarray[0]}
+    getoptsstring=":hf:a"
     shift # Remove `install` from the argument list
     ;;
   *)
@@ -57,6 +68,9 @@ while getopts "${getoptsstring}" opt "${paramarray[@]}"; do
     k )
         rinx="$OPTARG"
       ;;
+    a )
+        allele2_missing=true
+      ;;
     \? )
       echo "Invalid Option: -$OPTARG" 1>&2
       exit 1
@@ -82,10 +96,15 @@ if [ "$sstools_modifier" == "modifier" ] ; then
     adhocdo_usage 1>&2 
     exit 1
   fi
-elif [ "$sstools_modifier" == "placeholder" ] ; then
-  if [ -n "$specialfunction" ]; then
+elif [ "$sstools_modifier" == "correction" ] ; then
+  if [ -n "$infile" ] && [ "$allele2_missing" = true ]; then
+    echo "${infile}" "${SSTOOLS_AWK_EALLELE_CORRECTION_A1}"
+    #echo "${infile} ${SSTOOLS_AWK_EALLELE_CORRECTION_A1}" 1>&2
 
-    echo "placeholder"
+  elif [ -n "$infile" ]; then
+
+    echo "${infile}" "${SSTOOLS_AWK_EALLELE_CORRECTION_A1A2}"
+    #echo "${infile} ${SSTOOLS_AWK_EALLELE_CORRECTION_A1A2}" 1>&2
   else
     echo "Error: not enough params are set"
     adhocdo_usage 1>&2 

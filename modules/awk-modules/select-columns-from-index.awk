@@ -5,6 +5,11 @@
 #    it could very well be because one colname does not exist, and
 #    therefore sending back the $0 variable, which prints all fields
 
+# trimming from: https://gist.github.com/andrewrcollins/1592991
+function ltrim(s) { sub(/^[ \t\r\n]+/, "", s); return s }
+function rtrim(s) { sub(/[ \t\r\n]+$/, "", s); return s }
+function trim(s)  { return rtrim(ltrim(s)); }
+
 # Begin is performed before reading from stdin
 BEGIN {
 
@@ -24,7 +29,8 @@ NR==1 {
     for (i=1; i<=NF; i++){
         # add "var" to hash key to be sure it is not mixed up with an internal
         # variable
-        cix["var"$i] = i
+        tr=trim($i)
+        cix["var"tr] = i
     }
     #print new header same order as provided
     for(k=1; k <= length(newout); k++){

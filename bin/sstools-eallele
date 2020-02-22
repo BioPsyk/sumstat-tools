@@ -37,8 +37,22 @@ if [ $RESULT -eq 0 ]; then
       VAR_RETURN=(${VAR_RETURN})
       infile="${VAR_RETURN[0]}"
       readoption "${infile}" | ${SSTOOLS_RSOFT}/Rscript ${SSTOOLS_EALLELE_MODIFIER_RSCRIPT} ${SSTOOLS_R_HELPERS} "${VAR_RETURN[1]}" 
-    elif [ "$sstools_modifier" == "placeholder" ]; then
-      echo "hej"
+    elif [ "$sstools_modifier" == "correction" ]; then
+      VAR_RETURN=(${VAR_RETURN})
+      notGCTA="disc_notGCTA"
+      indel="disc_indel"
+      hom="disc_hom"
+      palin="disc_palin"
+      notPossPair="disc_notPossPair"
+      notExpA2="disc_notExpA2"
+
+      #AWK_1="${SSTOOLS_ROOT_ENV}/modules/awk-modules/refallele-curation.awk"
+      AWK_1="${VAR_RETURN[1]}"
+      AWK_2="${SSTOOLS_ROOT_ENV}/modules/awk-modules/awk-helper-functions/allele-curation-helpers.awk"
+      infile="${VAR_RETURN[0]}"
+      cmd1="awk -f ${AWK_1} -f ${AWK_2} -vnotGCTA="${notGCTA}" -vpalin="${palin}" -vhomvar="${hom}" -vnotExpA2="${notExpA2}" -vnotPossPairs="${notPossPair}" -vindel="${indel}""
+      #echo "${cmd1}"
+      readoption "${infile}" | eval ${cmd1}
     else
       echo "no modifier" 1>&2
     fi

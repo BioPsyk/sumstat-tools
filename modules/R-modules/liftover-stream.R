@@ -28,6 +28,9 @@ cix=c(vals[["chrpos"]],vals[["inx"]])
 #chunksize=10000
 #SSTOOLS_ROOT="/home/people/jesgaa/repos/sumstat-tools"
 
+if(!(gbin %in% c("GRCh35", "GRCh36", "GRCh37", "GRCh38") )){stop("genome build input must be one of GRCh35, GRCh36, GRCh37, GRCh38")}
+if(!(gbout%in% c("GRCh37", "GRCh38"))){stop("genome build outpust must be GRCh38")}
+
 .libPaths(libdir)
 
 #load required packages

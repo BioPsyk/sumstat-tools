@@ -53,7 +53,10 @@ if [ $RESULT -eq 0 ]; then
     elif [ "$sstools_modifier" == "which-exists" ]; then
       #echo "${ARGS_TO_RFUNC[@]}"
       ids_in_mapout "${ARGS_TO_RFUNC[@]}"
-
+    elif [ "$sstools_modifier" == "liftover" ]; then
+      #echo "${ARGS_TO_RFUNC[@]}"
+      #echo "${ARGS_TO_RFUNC[0]} ${SSTOOLS_RSOFT}/Rscript ${SSTOOLS_GB_LIFTOVER_RSCRIPT} ${ARGS_TO_RFUNC[@]:1} ${SSTOOLS_ROOT_ENV}"
+      readoption "${ARGS_TO_RFUNC[0]}" | ${SSTOOLS_RSOFT}/Rscript ${SSTOOLS_GB_LIFTOVER_RSCRIPT} "${ARGS_TO_RFUNC[@]:1}" ${SSTOOLS_ROOT_ENV}
     elif [ "$sstools_modifier" == "lookup" ]; then
       #echo "${ARGS_TO_RFUNC[@]}"
       ${SSTOOLS_RSOFT}/Rscript ${SSTOOLS_GB_LOOKUP_RSCRIPT} "${ARGS_TO_RFUNC[@]}" ${SSTOOLS_ROOT_ENV}
