@@ -95,7 +95,13 @@ while(length(line <- readLines(input, n=chunksize)) > 0){
   ix <- suppressWarnings(as.integer(unlist(lapply(da, function(x){x[2]}))))
 
   # throw out bad input as stderr
-  tf <- is.na(chr) | is.na(bp) | is.na(ix)
+  tf1 <- is.na(chr) | is.na(bp) | is.na(ix)
+
+  # throw out chromosomes not 1-22
+  tf2 <- !(chr %in% 1:22)
+
+  # merge exclusion criterias
+  tf <- tf1 | tf2
   
   # throw out bad input 
   if(any(tf)){
