@@ -13,24 +13,24 @@ function funx_chrCHR_2_CHR(markername) {
 
 #chr:bp
 function funx_CHR_BP_2_CHR(markername) {
-  split(markername,sp,":")
+  split(markername,sp,"[:_]")
   CHR = sp[1]
   return CHR;
 }
 function funx_CHR_BP_2_BP(markername) {
-  split(markername,sp,":")
+  split(markername,sp,"[:_]")
   BP = sp[2]
   return BP;
 }
 #chrchr:bp
 function funx_chrCHR_BP_2_CHR(markername) {
   gsub(/[c|C][h|H][r|R]/,"",markername)
-  split(markername,sp,":")
+  split(markername,sp,"[:_]")
   return sp[1];
 }
 function funx_chrCHR_BP_2_BP(markername) {
   gsub(/[c|C][h|H][r|R]/,"",markername)
-  split(markername,sp,":")
+  split(markername,sp,"[:_]")
   return sp[2];
 }
 
@@ -38,17 +38,17 @@ function funx_chrCHR_BP_2_BP(markername) {
 
 #chr:bp:A1
 function funx_CHR_BP_EA_2_CHR(markername) {
-  split(markername,sp,":")
+  split(markername,sp,"[:_]")
   CHR = sp[1]
   return CHR;
 }
 function funx_CHR_BP_EA_2_BP(markername) {
-  split(markername,sp,":")
+  split(markername,sp,"[:_]")
   BP = sp[2]
   return BP;
 }
 function funx_CHR_BP_EA_2_EA(markername) {
-  split(markername,sp,":")
+  split(markername,sp,"[:_]")
   EA = toupper(sp[3])
   return EA;
 }
@@ -56,19 +56,19 @@ function funx_CHR_BP_EA_2_EA(markername) {
 #chrchr:bp:A1
 function funx_chrCHR_BP_EA_2_CHR(markername) {
   gsub(/[c|C][h|H][r|R]/,"",markername)
-  split(markername,sp,":")
+  split(markername,sp,"[:_]")
   CHR = sp[1]
   return CHR;
 }
 function funx_chrCHR_BP_EA_2_BP(markername) {
   gsub(/[c|C][h|H][r|R]/,"",markername)
-  split(markername,sp,":")
+  split(markername,sp,"[:_]")
   BP = sp[2]
   return BP;
 }
 function funx_chrCHR_BP_EA_2_EA(markername) {
   gsub(/[c|C][h|H][r|R]/,"",markername)
-  split(markername,sp,":")
+  split(markername,sp,"[:_]")
   EA = toupper(sp[3])
   return EA;
 }
@@ -76,47 +76,47 @@ function funx_chrCHR_BP_EA_2_EA(markername) {
 
 #chr:bp:A1:A2
 function funx_CHR_BP_EA_AA_2_CHR(markername) {
-  split(markername,sp,":")
+  split(markername,sp,"[:_]")
   CHR = sp[1]
   return CHR;
 }
 function funx_CHR_BP_EA_AA_2_BP(markername) {
-  split(markername,sp,":")
+  split(markername,sp,"[:_]")
   BP = sp[2]
   return BP;
 }
 function funx_CHR_BP_EA_AA_2_EA(markername) {
-  split(markername,sp,":")
+  split(markername,sp,"[:_]")
   EA = toupper(sp[3])
   return EA;
 }
 function funx_CHR_BP_EA_AA_2_AA(markername) {
-  split(markername,sp,":")
+  split(markername,sp,"[:_]")
   AA = toupper(sp[4])
   return AA;
 }
 
 function funx_chrCHR_BP_EA_AA_2_CHR(markername) {
   gsub(/[c|C][h|H][r|R]/,"",markername)
-  split(markername,sp,":")
+  split(markername,sp,"[:_]")
   CHR = sp[1]
   return CHR;
 }
 function funx_chrCHR_BP_EA_AA_2_BP(markername) {
   gsub(/[c|C][h|H][r|R]/,"",markername)
-  split(markername,sp,":")
+  split(markername,sp,"[:_]")
   BP = sp[2]
   return BP;
 }
 function funx_chrCHR_BP_EA_AA_2_EA(markername) {
   gsub(/[c|C][h|H][r|R]/,"",markername)
-  split(markername,sp,":")
+  split(markername,sp,"[:_]")
   EA = toupper(sp[3])
   return EA;
 }
 function funx_chrCHR_BP_EA_AA_2_AA(markername) {
   gsub(/[c|C][h|H][r|R]/,"",markername)
-  split(markername,sp,":")
+  split(markername,sp,"[:_]")
   AA = toupper(sp[4])
   return AA;
 }
@@ -124,114 +124,114 @@ function funx_chrCHR_BP_EA_AA_2_AA(markername) {
 #
 # underline versions
 #
-#chr_bp
-function funx_underline_CHR_BP_2_CHR(markername) {
-  split(markername,sp,"_")
-  CHR = sp[1]
-  return CHR;
-}
-function funx_underline_CHR_BP_2_BP(markername) {
-  split(markername,sp,"_")
-  BP = sp[2]
-  return BP;
-}
-#chrchr_bp
-function funx_underline_chrCHR_BP_2_CHR(markername) {
-  gsub(/[c|C][h|H][r|R]/,"",markername)
-  split(markername,sp,"_")
-  return sp[1];
-}
-function funx_underline_chrCHR_BP_2_BP(markername) {
-  gsub(/[c|C][h|H][r|R]/,"",markername)
-  split(markername,sp,"_")
-  return sp[2];
-}
-
-#chr_bp_A1
-function funx_underline_CHR_BP_EA_2_CHR(markername) {
-  split(markername,sp,"_")
-  CHR = sp[1]
-  return CHR;
-}
-function funx_underline_CHR_BP_EA_2_BP(markername) {
-  split(markername,sp,"_")
-  BP = sp[2]
-  return BP;
-}
-function funx_underline_CHR_BP_EA_2_EA(markername) {
-  split(markername,sp,"_")
-  EA = toupper(sp[3])
-  return EA;
-}
-
-#chrchr_bp_A1
-function funx_underline_chrCHR_BP_EA_2_CHR(markername) {
-  gsub(/[c|C][h|H][r|R]/,"",markername)
-  split(markername,sp,"_")
-  CHR = sp[1]
-  return CHR;
-}
-function funx_underline_chrCHR_BP_EA_2_BP(markername) {
-  gsub(/[c|C][h|H][r|R]/,"",markername)
-  split(markername,sp,"_")
-  BP = sp[2]
-  return BP;
-}
-function funx_underline_chrCHR_BP_EA_2_EA(markername) {
-  gsub(/[c|C][h|H][r|R]/,"",markername)
-  split(markername,sp,"_")
-  EA = toupper(sp[3])
-  return EA;
-}
-
-
-#chr_bp_A1_A2
-function funx_underline_CHR_BP_EA_AA_2_CHR(markername) {
-  split(markername,sp,"_")
-  CHR = sp[1]
-  return CHR;
-}
-function funx_underline_CHR_BP_EA_AA_2_BP(markername) {
-  split(markername,sp,"_")
-  BP = sp[2]
-  return BP;
-}
-function funx_underline_CHR_BP_EA_AA_2_EA(markername) {
-  split(markername,sp,"_")
-  EA = toupper(sp[3])
-  return EA;
-}
-function funx_underline_CHR_BP_EA_AA_2_AA(markername) {
-  split(markername,sp,"_")
-  AA = toupper(sp[4])
-  return AA;
-}
-
-function funx_underline_chrCHR_BP_EA_AA_2_CHR(markername) {
-  gsub(/[c|C][h|H][r|R]/,"",markername)
-  split(markername,sp,"_")
-  CHR = sp[1]
-  return CHR;
-}
-function funx_underline_chrCHR_BP_EA_AA_2_BP(markername) {
-  gsub(/[c|C][h|H][r|R]/,"",markername)
-  split(markername,sp,"_")
-  BP = sp[2]
-  return BP;
-}
-function funx_underline_chrCHR_BP_EA_AA_2_EA(markername) {
-  gsub(/[c|C][h|H][r|R]/,"",markername)
-  split(markername,sp,"_")
-  EA = toupper(sp[3])
-  return EA;
-}
-function funx_underline_chrCHR_BP_EA_AA_2_AA(markername) {
-  gsub(/[c|C][h|H][r|R]/,"",markername)
-  split(markername,sp,"_")
-  AA = toupper(sp[4])
-  return AA;
-}
-
+##chr_bp
+#function funx_underline_CHR_BP_2_CHR(markername) {
+#  split(markername,sp,"_")
+#  CHR = sp[1]
+#  return CHR;
+#}
+#function funx_underline_CHR_BP_2_BP(markername) {
+#  split(markername,sp,"_")
+#  BP = sp[2]
+#  return BP;
+#}
+##chrchr_bp
+#function funx_underline_chrCHR_BP_2_CHR(markername) {
+#  gsub(/[c|C][h|H][r|R]/,"",markername)
+#  split(markername,sp,"_")
+#  return sp[1];
+#}
+#function funx_underline_chrCHR_BP_2_BP(markername) {
+#  gsub(/[c|C][h|H][r|R]/,"",markername)
+#  split(markername,sp,"_")
+#  return sp[2];
+#}
+#
+##chr_bp_A1
+#function funx_underline_CHR_BP_EA_2_CHR(markername) {
+#  split(markername,sp,"_")
+#  CHR = sp[1]
+#  return CHR;
+#}
+#function funx_underline_CHR_BP_EA_2_BP(markername) {
+#  split(markername,sp,"_")
+#  BP = sp[2]
+#  return BP;
+#}
+#function funx_underline_CHR_BP_EA_2_EA(markername) {
+#  split(markername,sp,"_")
+#  EA = sp[3]
+#  return EA;
+#}
+#
+##chrchr_bp_A1
+#function funx_underline_chrCHR_BP_EA_2_CHR(markername) {
+#  gsub(/[c|C][h|H][r|R]/,"",markername)
+#  split(markername,sp,"_")
+#  CHR = sp[1]
+#  return CHR;
+#}
+#function funx_underline_chrCHR_BP_EA_2_BP(markername) {
+#  gsub(/[c|C][h|H][r|R]/,"",markername)
+#  split(markername,sp,"_")
+#  BP = sp[2]
+#  return BP;
+#}
+#function funx_underline_chrCHR_BP_EA_2_EA(markername) {
+#  gsub(/[c|C][h|H][r|R]/,"",markername)
+#  split(markername,sp,"_")
+#  EA = sp[3]
+#  return EA;
+#}
+#
+#
+##chr_bp_A1_A2
+#function funx_underline_CHR_BP_EA_AA_2_CHR(markername) {
+#  split(markername,sp,"_")
+#  CHR = sp[1]
+#  return CHR;
+#}
+#function funx_underline_CHR_BP_EA_AA_2_BP(markername) {
+#  split(markername,sp,"_")
+#  BP = sp[2]
+#  return BP;
+#}
+#function funx_underline_CHR_BP_EA_AA_2_EA(markername) {
+#  split(markername,sp,"_")
+#  EA = sp[3]
+#  return EA;
+#}
+#function funx_underline_CHR_BP_EA_AA_2_AA(markername) {
+#  split(markername,sp,"_")
+#  AA = sp[4]
+#  return AA;
+#}
+#
+#function funx_underline_chrCHR_BP_EA_AA_2_CHR(markername) {
+#  gsub(/[c|C][h|H][r|R]/,"",markername)
+#  split(markername,sp,"_")
+#  CHR = sp[1]
+#  return CHR;
+#}
+#function funx_underline_chrCHR_BP_EA_AA_2_BP(markername) {
+#  gsub(/[c|C][h|H][r|R]/,"",markername)
+#  split(markername,sp,"_")
+#  BP = sp[2]
+#  return BP;
+#}
+#function funx_underline_chrCHR_BP_EA_AA_2_EA(markername) {
+#  gsub(/[c|C][h|H][r|R]/,"",markername)
+#  split(markername,sp,"_")
+#  EA = sp[3]
+#  return EA;
+#}
+#function funx_underline_chrCHR_BP_EA_AA_2_AA(markername) {
+#  gsub(/[c|C][h|H][r|R]/,"",markername)
+#  split(markername,sp,"_")
+#  AA = sp[4]
+#  return AA;
+#}
+#
 
 ################################################################################
 # Allele annotation transformations 
