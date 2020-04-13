@@ -367,12 +367,27 @@ function abs(v) {return v < 0 ? -v : v}
 ##    OR = 1.5, P = 0.95, which should give Z = 0.0627
 ##    OR = 1.5, P = 0.05, which should give Z = 1.9599
 
-function funx_OR_and_Pvalue_2_Z(ORPvalue) {
-  split(ORPvalue,sp,",")
-  p2 = sp[2]/2
-  s = sgn(log(sp[1]))*abs(NormalCDFInverse(p2/2));
+#commented out this 2020-04-12 because of new c-code which computes qnorm
+#function funx_OR_and_Pvalue_2_Z(ORPvalue) {
+#  split(ORPvalue,sp,",")
+#  p2 = sp[2]/2
+#  s = sgn(log(sp[1]))*abs(NormalCDFInverse(p2/2));
+#  return s;
+#}
+
+function funx_OR_and_QNORM_2_Z(ORQNORM) {
+  split(ORQNORM,sp,",")
+  s = sgn(log(sp[1]))*abs(sp[2]);
   return s;
 }
+
+#function funx_logOR_and_Pvalue_2_Z(logORPvalue) {
+#  split(logORPvalue,sp,",")
+#  p2 = sp[2]/2
+#  s = sgn(sp[1])*abs(NormalCDFInverse(p2/2));
+#  return s;
+#}
+
 function funx_logOR_and_Pvalue_2_Z(logORPvalue) {
   split(logORPvalue,sp,",")
   p2 = sp[2]/2
