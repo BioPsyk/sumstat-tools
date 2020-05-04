@@ -6,9 +6,10 @@
 function funx_default(markername) {
   return toupper(markername);
 }
+
 function funx_chrCHR_2_CHR(markername) {
-  mn2 = gsub(/[c|C][h|H][r|R]/,"",markername)
-  return mn2;
+  gsub(/[c|C][h|H][r|R]/,"", markername)
+  return markername;
 }
 
 #chr:bp
