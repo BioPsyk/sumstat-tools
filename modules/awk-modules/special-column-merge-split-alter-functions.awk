@@ -122,117 +122,24 @@ function funx_chrCHR_BP_EA_AA_2_AA(markername) {
   return AA;
 }
 
-#
-# underline versions
-#
-##chr_bp
-#function funx_underline_CHR_BP_2_CHR(markername) {
-#  split(markername,sp,"_")
-#  CHR = sp[1]
-#  return CHR;
-#}
-#function funx_underline_CHR_BP_2_BP(markername) {
-#  split(markername,sp,"_")
-#  BP = sp[2]
-#  return BP;
-#}
-##chrchr_bp
-#function funx_underline_chrCHR_BP_2_CHR(markername) {
-#  gsub(/[c|C][h|H][r|R]/,"",markername)
-#  split(markername,sp,"_")
-#  return sp[1];
-#}
-#function funx_underline_chrCHR_BP_2_BP(markername) {
-#  gsub(/[c|C][h|H][r|R]/,"",markername)
-#  split(markername,sp,"_")
-#  return sp[2];
-#}
-#
-##chr_bp_A1
-#function funx_underline_CHR_BP_EA_2_CHR(markername) {
-#  split(markername,sp,"_")
-#  CHR = sp[1]
-#  return CHR;
-#}
-#function funx_underline_CHR_BP_EA_2_BP(markername) {
-#  split(markername,sp,"_")
-#  BP = sp[2]
-#  return BP;
-#}
-#function funx_underline_CHR_BP_EA_2_EA(markername) {
-#  split(markername,sp,"_")
-#  EA = sp[3]
-#  return EA;
-#}
-#
-##chrchr_bp_A1
-#function funx_underline_chrCHR_BP_EA_2_CHR(markername) {
-#  gsub(/[c|C][h|H][r|R]/,"",markername)
-#  split(markername,sp,"_")
-#  CHR = sp[1]
-#  return CHR;
-#}
-#function funx_underline_chrCHR_BP_EA_2_BP(markername) {
-#  gsub(/[c|C][h|H][r|R]/,"",markername)
-#  split(markername,sp,"_")
-#  BP = sp[2]
-#  return BP;
-#}
-#function funx_underline_chrCHR_BP_EA_2_EA(markername) {
-#  gsub(/[c|C][h|H][r|R]/,"",markername)
-#  split(markername,sp,"_")
-#  EA = sp[3]
-#  return EA;
-#}
-#
-#
-##chr_bp_A1_A2
-#function funx_underline_CHR_BP_EA_AA_2_CHR(markername) {
-#  split(markername,sp,"_")
-#  CHR = sp[1]
-#  return CHR;
-#}
-#function funx_underline_CHR_BP_EA_AA_2_BP(markername) {
-#  split(markername,sp,"_")
-#  BP = sp[2]
-#  return BP;
-#}
-#function funx_underline_CHR_BP_EA_AA_2_EA(markername) {
-#  split(markername,sp,"_")
-#  EA = sp[3]
-#  return EA;
-#}
-#function funx_underline_CHR_BP_EA_AA_2_AA(markername) {
-#  split(markername,sp,"_")
-#  AA = sp[4]
-#  return AA;
-#}
-#
-#function funx_underline_chrCHR_BP_EA_AA_2_CHR(markername) {
-#  gsub(/[c|C][h|H][r|R]/,"",markername)
-#  split(markername,sp,"_")
-#  CHR = sp[1]
-#  return CHR;
-#}
-#function funx_underline_chrCHR_BP_EA_AA_2_BP(markername) {
-#  gsub(/[c|C][h|H][r|R]/,"",markername)
-#  split(markername,sp,"_")
-#  BP = sp[2]
-#  return BP;
-#}
-#function funx_underline_chrCHR_BP_EA_AA_2_EA(markername) {
-#  gsub(/[c|C][h|H][r|R]/,"",markername)
-#  split(markername,sp,"_")
-#  EA = sp[3]
-#  return EA;
-#}
-#function funx_underline_chrCHR_BP_EA_AA_2_AA(markername) {
-#  gsub(/[c|C][h|H][r|R]/,"",markername)
-#  split(markername,sp,"_")
-#  AA = sp[4]
-#  return AA;
-#}
-#
+#force sex chromosome format to numbers
+function funx_force_sex_chromosomes_format(markername) {
+ m2=toupper(markername)
+
+  }if (m2 ~ /^YX/ ){ newCHR="25"
+  }else if (m2 ~ /^XY/ ){ newCHR="25"
+  }else if (m2 ~ /^Y/ ){ newCHR="24"
+  }else if (m2 ~ /^X/ ){ newCHR="23"
+  }else if (m2 ~ /^M|MT/ ){ newCHR="26"
+  }else if (m2 ~ /^CHRXY/ ){ newCHR="25"
+  }else if (m2 ~ /^CHRYX/ ){ newCHR="25"
+  }else if (m2 ~ /^CHRY/ ){ newCHR="24"
+  }else if (m2 ~ /^CHRX/ ){ newCHR="23"
+  }else if (m2 ~ /^CHRM|CHRMT/ ){ newCHR="26"
+  }else print newCHR=m2
+
+  return newCHR;
+}
 
 ################################################################################
 # Allele annotation transformations 
