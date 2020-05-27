@@ -126,7 +126,7 @@ function funx_chrCHR_BP_EA_AA_2_AA(markername) {
 function funx_force_sex_chromosomes_format(markername) {
  m2=toupper(markername)
 
-  }if (m2 ~ /^YX/ ){ newCHR="25"
+  if (m2 ~ /^YX/ ){ newCHR="25"
   }else if (m2 ~ /^XY/ ){ newCHR="25"
   }else if (m2 ~ /^Y/ ){ newCHR="24"
   }else if (m2 ~ /^X/ ){ newCHR="23"
@@ -136,8 +136,8 @@ function funx_force_sex_chromosomes_format(markername) {
   }else if (m2 ~ /^CHRY/ ){ newCHR="24"
   }else if (m2 ~ /^CHRX/ ){ newCHR="23"
   }else if (m2 ~ /^CHRM|CHRMT/ ){ newCHR="26"
-  }else print newCHR=m2
-
+  }else newCHR=m2
+  
   return newCHR;
 }
 
