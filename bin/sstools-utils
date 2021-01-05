@@ -5,7 +5,7 @@ sstools_modifier=$1
 #execute global config file to get most up to date configurations
 #Not the most beautiful way to set an environmental variable but it works
 
-CURDIR=`/bin/pwd`
+CURDIR=$(pwd)
 BASEDIR=$(dirname $0)
 ABSPATH=$(readlink -f $0)
 ABSDIR=$(dirname $ABSPATH)
