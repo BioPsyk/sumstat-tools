@@ -136,8 +136,10 @@ function funx_force_sex_chromosomes_format(markername) {
   }else if (m2 ~ /^CHRY/ ){ newCHR="24"
   }else if (m2 ~ /^CHRX/ ){ newCHR="23"
   }else if (m2 ~ /^CHRM|CHRMT/ ){ newCHR="26"
-  }else newCHR=m2
-  
+  }else{ 
+    gsub(/[C][H][R]/,"", m2)
+    newCHR=m2
+  }
   return newCHR;
 }
 
