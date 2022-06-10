@@ -1,5 +1,7 @@
 # sumstat-tools
 
+WARNING: THIS README IS EXTREMELY OUTDATED AND NEEDS TO BE UPDATED
+
 A toolbox of modularized software with the purpose of assisting a pipeline to control the quality of files with GWAS summary statistics.
 
 ## Table of Contents
