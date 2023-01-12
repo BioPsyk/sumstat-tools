@@ -20,7 +20,8 @@ function opp(a){
   if(a=="A"){ans="T"}
   else if(a=="T"){ans="A"}
   else if(a=="G"){ans="C"}
-  else{ans="G"}
+  else if(a=="C"){ans="G"}
+  else{ans="Not any of GCTA"}
   return ans;
 }
 function notExpectedA2(a1,a2,b1,b2,re,al){
@@ -39,5 +40,5 @@ function possiblePairs(a1,a2,b1,b2,re,al){
   return ans;
 }
 function effmod(a1,a2,re){
-  if(a1==re || b1 == re){return 1}else{return -1}
+  if(a1==re || a2 == re){return 1}else{return -1}
 }

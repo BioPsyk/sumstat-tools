@@ -55,7 +55,7 @@ BEGIN {
     print $0 > notPossPairs;
   }else{
   # Calculate effect modifier for remaining and print to stdout
-    print $0,effmod($2,$3,$6)
+    print $0,effmod($2,opp($2),$6)
   }
 }
 
