@@ -29,6 +29,11 @@ sstools-version
 ```
 NOTE: After the path has been set, the cloned directory cannot be moved without running ./install again from the new path
 
+```shell
+# Run unit tests (run from project root)
+./tests/run-unit-tests.sh
+```
+
 ## <a name="user-config"></a>user-config
 sumstat-tools has all configuration files in the ```config``` directory.
 
