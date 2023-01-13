@@ -48,7 +48,7 @@ BEGIN {
   if(!(in_GTCA($2) && in_GTCA($5) && in_GTCA($6))){
     print $0 > notGCTA;
   }else if(indl($5,$6)){
-  # Check for homozygote variants (should not happen in real data)
+  # Check for indels
     print $0 > indel;
   }else if(homozygous($5,$6)){
   # Check for homozygote variants (should not happen in real data)
@@ -60,7 +60,7 @@ BEGIN {
   # Use expected A2 as A2 
     a2=calcExpectedA2($2,$5,$6)
   # Calculate effect modifier for remaining and print to stdout
-    print $1,$2,a2,$3,$4,$5,$6,effmod($2,a2,$5)
+    print $1,$2,a2,$3,$4,$5,$6,effmod($2,opp($2),$5)
   }
 }
 

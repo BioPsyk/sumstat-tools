@@ -39,7 +39,7 @@ BEGIN {
   if(!(in_GTCA($2) && in_GTCA($3) && in_GTCA($6) && in_GTCA($7))){
     print $0 > notGCTA;
   }else if(indl($2,$3) || indl($6,$7)){
-  # Check for homozygote variants (should not happen in real data)
+  # Check for indels
     print $0 > indel;
   }else if(homozygous($2,$3) || homozygous($6,$7)){
   # Check for homozygote variants (should not happen in real data)
